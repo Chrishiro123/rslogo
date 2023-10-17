@@ -11,8 +11,28 @@ pub fn parse(mut tokens: std::str::SplitWhitespace,
     let first = tokens.next();
     match first {
         Some("//") => return Ok(()),
-        Some("PENUP") => return turtle.penup(),
-        Some("PENDOWN") => return turtle.pendown(),
+        Some("PENUP") => {
+            //check no extra parameter
+            if tokens.next().is_none() {
+                ();
+            }
+            else {
+                eprintln!("Too many parameters in PENUP!");
+                return Err(());                        
+            }
+            return turtle.penup()
+        },
+        Some("PENDOWN") => {
+            //check no extra parameter
+            if tokens.next().is_none() {
+                ();
+            }
+            else {
+                eprintln!("Too many parameters in PENDOWN!");
+                return Err(());                        
+            }
+            return turtle.pendown()
+        },
         Some("FORWARD") => {
             //get the first parameter
             let (prefix, rest) = prefix_check(tokens.next());
