@@ -1,0 +1,3 @@
+(function() {var implementors = {
+"helpers":[["impl Freeze for <a class=\"struct\" href=\"helpers/turtle/struct.Turtle.html\" title=\"struct helpers::turtle::Turtle\">Turtle</a>",1,["helpers::turtle::Turtle"]],["impl Freeze for <a class=\"enum\" href=\"helpers/turtle/enum.Color.html\" title=\"enum helpers::turtle::Color\">Color</a>",1,["helpers::turtle::Color"]]]
+};if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()

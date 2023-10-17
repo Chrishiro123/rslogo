@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"enum":["Color"],"fn":["get_color"],"struct":["Turtle"]};
