@@ -283,6 +283,13 @@ pub fn parse(mut tokens: std::str::SplitWhitespace,
             else {
                 //get the second parameter
                 let (prefix, rest2) = prefix_check(tokens.next());
+
+
+                let t = is_number(&prefix);
+                println!("prefix: {prefix:?}, rest2: {rest2}, is_number? {t:?}");
+
+
+
                 if is_number(&prefix) {
                     let value = get_number(&prefix, rest2, turtle, variables);
                     match value {
@@ -291,7 +298,7 @@ pub fn parse(mut tokens: std::str::SplitWhitespace,
                             return Ok(());
                         },
                         Err(_e) => {
-                            eprintln!("Wrong parameter in ADDASSIGN!");
+                            eprintln!("Wrong parameter in MAKE!");
                             return Err(());
                         },
                     }

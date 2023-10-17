@@ -1,5 +1,7 @@
 use std::collections::HashMap;
 use crate::{token_check::Prefix, turtle::Turtle};
+use unsvg::Color;
+use unsvg::COLORS;
 
 // use a const f32 to store true and false value
 // so that variable can only have f32 value
@@ -29,6 +31,7 @@ pub fn get_number(prefix: &Prefix, rest: &str, turtle : &Turtle, variables: &mut
         &Prefix::XCOR => Ok(turtle.x),
         &Prefix::YCOR => Ok(turtle.y),
         &Prefix::HEADING => Ok(turtle.direction as f32),
+        &Prefix::COLOR => Ok(get_color(turtle.color)),
         &Prefix::QuotationValue => Ok(rest.parse::<f32>().unwrap()),
         &Prefix::Colon => {
             match variables.get(rest) {
@@ -55,4 +58,14 @@ pub fn get_bool(prefix: &Prefix) -> f32 {
         eprintln!("Error occured in get_bool");
         return 0.0;
     }
+}
+
+pub fn get_color(color: &Color) -> f32 {
+    for i in 1..15 {
+        if color ==  &COLORS[i] {
+            return i as f32;
+        }
+    }
+    eprintln!("error in get_color!");
+    return 0.0;
 }

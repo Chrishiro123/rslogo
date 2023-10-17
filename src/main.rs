@@ -31,7 +31,7 @@ fn main() -> Result<(), ()> {
     let width = args.width;
 
     let mut image = Image::new(width, height);
-    let mut turtle = Turtle::new();
+    let mut turtle = Turtle::new(width, height);
     //store variables
     let mut variables: HashMap<String, f32> = HashMap::new();
 

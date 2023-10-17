@@ -1,4 +1,7 @@
 #[derive(PartialEq)]
+
+
+#[derive(Debug)]
 pub enum Prefix {
     XCOR,
     YCOR,
@@ -68,7 +71,7 @@ pub fn is_number(prefix: &Prefix) -> bool {
         &Prefix::XCOR => return true,
         &Prefix::YCOR => return true,
         &Prefix::HEADING => return true,
-        &Prefix::COLOR => return false,
+        &Prefix::COLOR => return true,
         &Prefix::QuotationValue => return true,
         &Prefix::QuotationVar => return false,
         &Prefix::Colon => return true,

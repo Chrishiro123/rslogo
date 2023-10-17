@@ -13,10 +13,10 @@ pub struct Turtle {
 }
 
 impl Turtle {
-    pub fn new() -> Self {
+    pub fn new(width: u32, height: u32) -> Self {
         Self {
-            x : 0.0,
-            y : 0.0,
+            x : (width / 2) as f32,
+            y : (height / 2) as f32,
             down : false,
             direction: 0,
             color : &COLORS[7],
