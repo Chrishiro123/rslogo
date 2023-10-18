@@ -13,17 +13,24 @@ pub fn parse(mut tokens: std::str::SplitWhitespace,
       _index: &mut usize,
       conditions: &mut VecDeque<Condition>,
     ) -> Result<(), ()> {
+    let first = tokens.next();
+    if let Some(first_word) = first {
+        println!("The first word: {first_word}");
+    }
     // check if this line is in while or if loop
     // and dothing if not in any condition (empty conditions)
     if let Some(condition) = conditions.back() {
         // if condition is false, skip this line
-        if condition.result == false {
+        if condition.result == false 
+            && first != Some("]")
+            && first != Some("IF")
+            && first != Some("WHILE")
+            {
             *_index += 1;
             return Ok(())
         }
     }
 
-    let first = tokens.next();
     match first {
         Some("//") => {
             *_index += 1;
@@ -42,6 +49,7 @@ pub fn parse(mut tokens: std::str::SplitWhitespace,
             return turtle.penup()
         },
         Some("PENDOWN") => {
+            println!("entered pendown!");
             *_index += 1;
             //check no extra parameter
             if tokens.next().is_none() {
@@ -388,7 +396,22 @@ pub fn parse(mut tokens: std::str::SplitWhitespace,
         }
 
         Some("IF") => {
+            // check if it is in another IF/WHILE bracket
+            match conditions.back() {
+                Some(value) => {
+                    if value.result == false {
+                        // if is in another false bracket, do not execute, but just add a new false condition in (to match its ])
+                        // if is in a true bracket, execute as normal
+                        conditions.push_back(Condition::new(ConditionType::IF, _index.clone(), false));
+                        *_index += 1;
+                        return Ok(());
+                    }
+                },
+                // not in, so do nothing
+                None => (),
+            }
             //get next key word
+            println!("Entered IF");
             let res = tokens.next();
             let keyword: &str;
             match res {
@@ -431,6 +454,7 @@ pub fn parse(mut tokens: std::str::SplitWhitespace,
                 },
             }
             //check if condition is true
+            println!("{value1}, {value2}");
             if value1 == value2 {
                 conditions.push_back(Condition::new(ConditionType::IF, _index.clone(), true));
             }
@@ -452,6 +476,20 @@ pub fn parse(mut tokens: std::str::SplitWhitespace,
             return Ok(());
         },
         Some("WHILE") => {
+            // check if it is in another IF/WHILE bracket
+            match conditions.back() {
+                Some(value) => {
+                    if value.result == false {
+                        // if is in another false bracket, do not execute, but just add a new false condition in (to match its ])
+                        // if is in a true bracket, execute as normal
+                        conditions.push_back(Condition::new(ConditionType::WHILE, _index.clone(), false));
+                        *_index += 1;
+                        return Ok(());
+                    }
+                },
+                // not in, so do nothing
+                None => (),
+            }
             //get next key word
             let res = tokens.next();
             let keyword: &str;

@@ -1,9 +1,10 @@
-#[derive(PartialEq)]
+#[derive(PartialEq, Debug)]
 pub enum ConditionType {
     IF,
     WHILE,
 }
 
+#[derive(Debug)]
 pub struct Condition {
     pub condition_type: ConditionType,
     pub index: usize,
