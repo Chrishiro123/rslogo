@@ -1,2 +1,3 @@
 target/debug/*
 output.svg
+target/.rustc_info.json

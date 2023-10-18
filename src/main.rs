@@ -49,10 +49,16 @@ fn main() -> Result<(), ()> {
     for line in file_string.lines() {
         lines.push(line);
     }
+    let length = lines.len();
+    let mut index: usize = 0;
+
     // split it into tokens and go line by line and modify the image.
-    for line in lines {      
+    //for line in lines {     
+    while  index < length { 
+        println!("{index}");
+        let line = lines[index];
         let tokens = line.split_whitespace();
-        let result = parse(tokens, &mut turtle, &mut image, &mut variables);
+        let result = parse(tokens, &mut turtle, &mut image, &mut variables, &mut index);
         if let Err(_e) = result {
             return Err(());
         }

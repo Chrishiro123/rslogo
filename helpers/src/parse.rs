@@ -6,12 +6,17 @@ use std::collections::HashMap;
 
 pub fn parse(mut tokens: std::str::SplitWhitespace,
      turtle: &mut Turtle, image: &mut Image,
-      variables: &mut HashMap<String, f32>
+      variables: &mut HashMap<String, f32>,
+      _index: &mut usize,
     ) -> Result<(), ()> {
     let first = tokens.next();
     match first {
-        Some("//") => return Ok(()),
+        Some("//") => {
+            *_index += 1;
+            return Ok(())
+        },
         Some("PENUP") => {
+            *_index += 1;
             //check no extra parameter
             if tokens.next().is_none() {
                 ();
@@ -23,6 +28,7 @@ pub fn parse(mut tokens: std::str::SplitWhitespace,
             return turtle.penup()
         },
         Some("PENDOWN") => {
+            *_index += 1;
             //check no extra parameter
             if tokens.next().is_none() {
                 ();
@@ -34,6 +40,7 @@ pub fn parse(mut tokens: std::str::SplitWhitespace,
             return turtle.pendown()
         },
         Some("FORWARD") => {
+            *_index += 1;
             //get the first parameter
             let (prefix, rest) = prefix_check(tokens.next());
             //check no extra parameter exists
@@ -60,6 +67,7 @@ pub fn parse(mut tokens: std::str::SplitWhitespace,
             }
         }
         Some("BACK") => {
+            *_index += 1;
             //get the first parameter
             let (prefix, rest) = prefix_check(tokens.next());
             //check no extra parameter exists
@@ -86,6 +94,7 @@ pub fn parse(mut tokens: std::str::SplitWhitespace,
             }
         },
         Some("LEFT") => {
+            *_index += 1;
             //get the first parameter
             let (prefix, rest) = prefix_check(tokens.next());
             //check no extra parameter exists
@@ -112,6 +121,7 @@ pub fn parse(mut tokens: std::str::SplitWhitespace,
             }
         },
         Some("RIGHT") => {
+            *_index += 1;
             //get the first parameter
             let (prefix, rest) = prefix_check(tokens.next());
             //check no extra parameter exists
@@ -138,6 +148,7 @@ pub fn parse(mut tokens: std::str::SplitWhitespace,
             }
         },
         Some("SETPENCOLOR") => {
+            *_index += 1;
             //get the first parameter
             let (prefix, rest) = prefix_check(tokens.next());
             //check no extra parameter exists
@@ -171,6 +182,7 @@ pub fn parse(mut tokens: std::str::SplitWhitespace,
             }
         }
         Some("TURN") => {
+            *_index += 1;
             //get the first parameter
             let (prefix, rest) = prefix_check(tokens.next());
             //check no extra parameter exists
@@ -204,6 +216,7 @@ pub fn parse(mut tokens: std::str::SplitWhitespace,
             }
         }
         Some("SETHEADING") => {
+            *_index += 1;
             //get the first parameter
             let (prefix, rest) = prefix_check(tokens.next());
             //check no extra parameter exists
@@ -237,6 +250,7 @@ pub fn parse(mut tokens: std::str::SplitWhitespace,
             }
         }
         Some("SETX") => {
+            *_index += 1;
             //get the first parameter
             let (prefix, rest) = prefix_check(tokens.next());
             //check no extra parameter exists
@@ -265,6 +279,7 @@ pub fn parse(mut tokens: std::str::SplitWhitespace,
             }
         }
         Some("SETY") => {
+            *_index += 1;
             //get the first parameter
             let (prefix, rest) = prefix_check(tokens.next());
             //check no extra parameter exists
@@ -293,6 +308,7 @@ pub fn parse(mut tokens: std::str::SplitWhitespace,
             }
         }
         Some("MAKE") => {
+            *_index += 1;
             //get the first parameter
             let (prefix, rest1) = prefix_check(tokens.next());
             //check grammer
@@ -303,13 +319,6 @@ pub fn parse(mut tokens: std::str::SplitWhitespace,
             else {
                 //get the second parameter
                 let (prefix, rest2) = prefix_check(tokens.next());
-
-
-                let t = is_number(&prefix);
-                println!("prefix: {prefix:?}, rest2: {rest2}, is_number? {t:?}");
-
-
-
                 if is_number(&prefix) {
                     let value = get_number(&prefix, rest2, turtle, variables);
                     match value {
@@ -334,6 +343,7 @@ pub fn parse(mut tokens: std::str::SplitWhitespace,
             }
         }
         Some("ADDASSIGN") => {
+            *_index += 1;
             //get the first parameter
             let (prefix, rest1) = prefix_check(tokens.next());
             //check grammer
@@ -364,7 +374,10 @@ pub fn parse(mut tokens: std::str::SplitWhitespace,
         }
 
         Some(&_) => todo!(),
-        None  => return Ok(()),
+        None  => {
+            *_index += 1;
+            return Ok(());
+        },
     }
 
 }
