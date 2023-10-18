@@ -30,6 +30,12 @@ pub fn prefix_check(token_or_not: Option<&str>) -> (Prefix, &str) {
         else if token == "COLOR" {
             return (Prefix::COLOR, "");
         }
+        else if token == ":TRUE" {
+            return (Prefix::TRUE, "");
+        }
+        else if token == ":FALSE" {
+            return (Prefix::FALSE, "");
+        }
         else if token.chars().next().unwrap() == '"' {
             if let Some(rest) = token.get(1..) {
                 if rest.parse::<f32>().is_ok() {

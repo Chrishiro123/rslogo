@@ -426,32 +426,60 @@ pub fn parse(mut tokens: std::str::SplitWhitespace,
                 return Err(());
             }
             //get the first parameter of IF
-            let (prefix, rest) = prefix_check(tokens.next());
-            if !is_number(&prefix) {
-                eprintln!("some parameters in IF is not a number!");
-                return Err(());
-            }
             let value1: f32;
-            match get_number(&prefix, rest, turtle, variables) {
-                Ok(value) => value1 = value,
-                Err(_) => {
-                    eprintln!("Some parameters in IF are not defined variables!");
+            let (prefix, rest) = prefix_check(tokens.next());
+            // if it is not a number
+            if !is_number(&prefix) {
+                // check if it is TRUE or FALSE
+                if prefix == Prefix::TRUE {
+                    value1 = TRUE;
+                }
+                else if prefix == Prefix::TRUE {
+                    value1 = FALSE;
+                }
+                else {
+                    // if not, it is not valid.
+                    eprintln!("some parameters in IF is not valid!");
                     return Err(());
-                },
+                }
+            }
+            // it is a number, try to get it
+            else {
+                match get_number(&prefix, rest, turtle, variables) {
+                    Ok(value) => value1 = value,
+                    Err(_) => {
+                        eprintln!("Some variables in IF are not defined!");
+                        return Err(());
+                    },
+                }
             }
             //get the second parameter of IF
-            let (prefix, rest) = prefix_check(tokens.next());
-            if !is_number(&prefix) {
-                eprintln!("some parameters in IF are not numbers!");
-                return Err(());
-            }
             let value2: f32;
-            match get_number(&prefix, rest, turtle, variables) {
-                Ok(value) => value2 = value,
-                Err(_) => {
-                    eprintln!("Some parameters in IF are not defined variables!");
+            let (prefix, rest) = prefix_check(tokens.next());
+            // if it is not a number
+            if !is_number(&prefix) {
+                // check if it is TRUE or FALSE
+                if prefix == Prefix::TRUE {
+                    value2 = TRUE;
+                }
+                else if prefix == Prefix::TRUE {
+                    value2 = FALSE;
+                }
+                else {
+                    // if not, it is not valid.
+                    eprintln!("some parameters in IF is not valid!");
                     return Err(());
-                },
+                }
+            }
+            // it is a number, try to get it
+            else {
+                match get_number(&prefix, rest, turtle, variables) {
+                    Ok(value) => value2 = value,
+                    Err(_) => {
+                        eprintln!("Some variables in IF are not defined!");
+                        return Err(());
+                    },
+                }
             }
             //check if condition is true
             println!("{value1}, {value2}");
@@ -504,34 +532,65 @@ pub fn parse(mut tokens: std::str::SplitWhitespace,
                 eprintln!("keyword after WHILE is not EQ!");
                 return Err(());
             }
+
             //get the first parameter of WHILE
-            let (prefix, rest) = prefix_check(tokens.next());
-            if !is_number(&prefix) {
-                eprintln!("some parameters in WHILE is not a number!");
-                return Err(());
-            }
             let value1: f32;
-            match get_number(&prefix, rest, turtle, variables) {
-                Ok(value) => value1 = value,
-                Err(_) => {
-                    eprintln!("Some parameters in WHILE are not defined variables!");
-                    return Err(());
-                },
-            }
-            //get the second parameter of WHILE
             let (prefix, rest) = prefix_check(tokens.next());
+            // if it is not a number
             if !is_number(&prefix) {
-                eprintln!("some parameters in WHILE are not numbers!");
-                return Err(());
-            }
-            let value2: f32;
-            match get_number(&prefix, rest, turtle, variables) {
-                Ok(value) => value2 = value,
-                Err(_) => {
-                    eprintln!("Some parameters in WHILE are not defined variables!");
+                // check if it is TRUE or FALSE
+                if prefix == Prefix::TRUE {
+                    value1 = TRUE;
+                }
+                else if prefix == Prefix::TRUE {
+                    value1 = FALSE;
+                }
+                else {
+                    // if not, it is not valid.
+                    eprintln!("some parameters in WHILE is not valid!");
                     return Err(());
-                },
+                }
             }
+            // it is a number, try to get it
+            else {
+                match get_number(&prefix, rest, turtle, variables) {
+                    Ok(value) => value1 = value,
+                    Err(_) => {
+                        eprintln!("Some variables in WHILE are not defined!");
+                        return Err(());
+                    },
+                }
+            }
+
+            //get the first parameter of WHILE
+            let value2: f32;
+            let (prefix, rest) = prefix_check(tokens.next());
+            // if it is not a number
+            if !is_number(&prefix) {
+                // check if it is TRUE or FALSE
+                if prefix == Prefix::TRUE {
+                    value2 = TRUE;
+                }
+                else if prefix == Prefix::TRUE {
+                    value2 = FALSE;
+                }
+                else {
+                    // if not, it is not valid.
+                    eprintln!("some parameters in WHILE is not valid!");
+                    return Err(());
+                }
+            }
+            // it is a number, try to get it
+            else {
+                match get_number(&prefix, rest, turtle, variables) {
+                    Ok(value) => value2 = value,
+                    Err(_) => {
+                        eprintln!("Some variables in WHILE are not defined!");
+                        return Err(());
+                    },
+                }
+            }
+
             // check if this is a new while, or just a repeat
             let mut repeat = false;
             match conditions.back_mut() {
@@ -544,6 +603,7 @@ pub fn parse(mut tokens: std::str::SplitWhitespace,
                 // no existing conditions, this is a new "while"
                 None => repeat = false,
             }
+
             //check if condition is true
             if value1 == value2 {
                 // if it is a new "while", add in the Vecdequede
@@ -561,6 +621,7 @@ pub fn parse(mut tokens: std::str::SplitWhitespace,
                     last_condition.turn_off();
                 }
             }
+
             // check [ exist
             if let Some(value) = tokens.next() {
                 if value == "[" {
@@ -606,7 +667,6 @@ pub fn parse(mut tokens: std::str::SplitWhitespace,
                     return Ok(());
                 }
             }
-
         }
         Some(&_) => return Err(()),
         None  => {
