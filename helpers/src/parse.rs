@@ -601,6 +601,7 @@ pub fn parse(mut tokens: std::str::SplitWhitespace,
                     return Ok(());
                 }
                 else {
+                    conditions.pop_back();
                     *_index += 1;
                     return Ok(());
                 }
