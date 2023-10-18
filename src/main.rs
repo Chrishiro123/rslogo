@@ -1,9 +1,10 @@
 extern crate helpers;
 
 use clap::Parser;
-use helpers::{parse::parse, turtle::Turtle};
+use helpers::{parse::parse, turtle::Turtle, conditions};
 use unsvg::Image;
-use std::{fs::read_to_string, collections::HashMap};
+use std::{fs::read_to_string, collections::{HashMap, VecDeque}};
+use helpers::conditions::*;
 
 /// A simple program to parse four arguments using clap.
 #[derive(Parser)]
@@ -32,8 +33,10 @@ fn main() -> Result<(), ()> {
 
     let mut image = Image::new(width, height);
     let mut turtle = Turtle::new(width, height);
-    //store variables
+    // store variables
     let mut variables: HashMap<String, f32> = HashMap::new();
+    // store all while and ifs.
+    let mut conditions: VecDeque<Condition> = VecDeque::new();
 
     // read in file
     let mut lines: Vec<&str> = Vec::new();
@@ -58,12 +61,17 @@ fn main() -> Result<(), ()> {
         println!("{index}");
         let line = lines[index];
         let tokens = line.split_whitespace();
-        let result = parse(tokens, &mut turtle, &mut image, &mut variables, &mut index);
+        let result = parse(tokens, &mut turtle, &mut image, &mut variables, &mut index, &mut conditions);
         if let Err(_e) = result {
             return Err(());
         }
     }    
 
+    //after logo program is finished, if still in IF/WHILE bracket, report error
+    if !conditions.is_empty() {
+        eprintln!("logo code ended within incomplete WHILE/IF bracket!");
+        return Err(());
+    }
 
     match image_path.extension().map(|s| s.to_str()).flatten() {
         Some("svg") => {

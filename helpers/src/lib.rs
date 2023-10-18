@@ -2,6 +2,7 @@ pub mod turtle;
 pub mod parse;
 pub mod token_check;
 pub mod variables;
+pub mod conditions;
 
 //#[cfg(test)]
 //mod tests {
