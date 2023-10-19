@@ -63,10 +63,10 @@ pub fn get_operator(token: Option<&str>, next_line: &usize) -> Result<Operator, 
                 "LT" => Ok(Operator::LT),
                 "AND" => Ok(Operator::AND),
                 "OR" => Ok(Operator::OR),
-                "ADD" => Ok(Operator::ADD),
-                "SUB" => Ok(Operator::SUB),
-                "MUL" => Ok(Operator::MUL),
-                "DIV" => Ok(Operator::DIV),
+                "+" => Ok(Operator::ADD),
+                "-" => Ok(Operator::SUB),
+                "*" => Ok(Operator::MUL),
+                "/" => Ok(Operator::DIV),
                 _ => {
                     eprintln!("Get: {keyword}, in line: {next_line} when getting operator!");
                     return Err(());
