@@ -27,7 +27,7 @@ pub fn addassign<'a>(variables: &mut HashMap<String, f32>, variable: &str, value
     }
 }
 
-pub fn get_number(prefix: &Prefix, rest: &str, turtle : &Turtle, variables: &mut HashMap<String, f32>, next_line: &usize) -> Result<f32, ()> {
+pub fn get_number(prefix: &Prefix, rest: &str, turtle : &Turtle, variables: &HashMap<String, f32>, next_line: &usize) -> Result<f32, ()> {
     //logo code start from line 1, while index start from 0, so next line is actually the current line in logo code
     if is_number(prefix) {
         match prefix {
@@ -98,7 +98,7 @@ pub fn get_int(float: f32, next_line: &usize) -> Result<i32, ()> {
     return Ok(float as i32);
 }
 
-pub fn get_number_or_bool(prefix: &Prefix, rest: &str, turtle : &Turtle, variables: &mut HashMap<String, f32>, next_line: &usize) -> Result<f32, ()> {
+pub fn get_number_or_bool(prefix: &Prefix, rest: &str, turtle : &Turtle, variables: &HashMap<String, f32>, next_line: &usize) -> Result<f32, ()> {
     // check if it is a variable containing a bool
     if prefix == &Prefix::Colon {
         if let Some(value) = variables.get(rest) {
