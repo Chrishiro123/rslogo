@@ -63,7 +63,6 @@ fn main() -> Result<(), ()> {
         println!("{line} line: {logoline}");
         let tokens = line.split_whitespace();
         let result = parse(tokens, &mut turtle, &mut image, &mut variables, &mut index, &mut conditions);
-        println!("{conditions:?}");
         if let Err(_e) = result {
             return Err(());
         }

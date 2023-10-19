@@ -89,12 +89,13 @@ pub fn get_bool(prefix: &Prefix, next_line: &usize) -> Result<f32, ()> {
 }
 
 pub fn get_color(color: &Color) -> f32 {
-    for i in 1..15 {
+    for i in 0..=15 {
         if color ==  &COLORS[i] {
             return i as f32;
         }
     }
-    eprintln!("error in get_color!");
+    
+    eprintln!("error in get_color!, color: {color:?}");
     return 0.0;
 }
 
@@ -134,7 +135,7 @@ pub fn get_number_or_bool(prefix: &Prefix,
     if is_bool(prefix) {
         return get_bool(prefix, next_line);
     }
-    
+
     // check if it is a operator returning bool
     if prefix == &Prefix::OperatorBool {
         let value = math_calculation(tokens, rest, next_line, turtle, variables)?;
