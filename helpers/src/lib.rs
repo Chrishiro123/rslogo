@@ -3,6 +3,7 @@ pub mod parse;
 pub mod token_check;
 pub mod variables;
 pub mod conditions;
+pub mod maths;
 
 //#[cfg(test)]
 //mod tests {

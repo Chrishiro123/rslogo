@@ -1,4 +1,5 @@
 use std::collections::HashMap;
+use crate::token_check::{is_number, is_bool};
 use crate::{token_check::Prefix, turtle::Turtle};
 use unsvg::Color;
 use unsvg::COLORS;
@@ -26,37 +27,56 @@ pub fn addassign<'a>(variables: &mut HashMap<String, f32>, variable: &str, value
     }
 }
 
-pub fn get_number(prefix: &Prefix, rest: &str, turtle : &Turtle, variables: &mut HashMap<String, f32>) -> Result<f32, ()> {
-    match prefix {
-        &Prefix::XCOR => Ok(turtle.x),
-        &Prefix::YCOR => Ok(turtle.y),
-        &Prefix::HEADING => Ok(turtle.direction as f32),
-        &Prefix::COLOR => Ok(get_color(turtle.color)),
-        &Prefix::QuotationValue => Ok(rest.parse::<f32>().unwrap()),
-        &Prefix::Colon => {
-            match variables.get(rest) {
-                Some(value) => Ok(*value),
-                None => {
-                    eprintln!("trying to retrieve a non-existing variable: {rest}!");
-                    Err(())
-                },
-            }
-        },
-        //won't happen here
-        _ => Err(()),
+pub fn get_number(prefix: &Prefix, rest: &str, turtle : &Turtle, variables: &mut HashMap<String, f32>, next_line: &usize) -> Result<f32, ()> {
+    //logo code start from line 1, while index start from 0, so next line is actually the current line in logo code
+    if is_number(prefix) {
+        match prefix {
+            &Prefix::XCOR => Ok(turtle.x),
+            &Prefix::YCOR => Ok(turtle.y),
+            &Prefix::HEADING => Ok(turtle.direction as f32),
+            &Prefix::COLOR => Ok(get_color(turtle.color)),
+            &Prefix::QuotationValue => Ok(rest.parse::<f32>().unwrap()),
+            &Prefix::Colon => {
+                match variables.get(rest) {
+                    Some(value) => {
+                        if value == &TRUE || value == &FALSE {
+                            eprintln!("in line {next_line}, variable: {rest}, is a bool but requires a number!");
+                            return Err(());
+                        }
+                        return Ok(*value)
+                    },
+                    None => {
+                        eprintln!("in line {next_line}, trying to retrieve a non-existing variable: {rest}!");
+                        return Err(());
+                    },
+                }
+            },
+            //won't happen here
+            _ => return Err(()),
+        }
+    }
+    else {
+        eprintln!("In line {next_line}, trying to get a number but receving a non-number: {rest}!");
+        return Err(());
     }
 }
 
-pub fn get_bool(prefix: &Prefix) -> f32 {
-    if prefix == &Prefix::TRUE {
-        return TRUE;
-    }
-    else if prefix == &Prefix::FALSE{
-        return FALSE;
+pub fn get_bool(prefix: &Prefix, next_line: &usize) -> Result<f32, ()> {
+    if is_bool(prefix) {
+        if prefix == &Prefix::TRUE {
+            return Ok(TRUE);
+        }
+        else if prefix == &Prefix::FALSE{
+            return Ok(FALSE);
+        }
+        else {
+            eprintln!("Error occured in get_bool in line: {next_line}");
+            return Err(());
+            }
     }
     else {
-        eprintln!("Error occured in get_bool");
-        return 0.0;
+        eprintln!("Trying to get a bool in line {next_line}, but getting a non-bool");
+        return Err(());
     }
 }
 
@@ -68,4 +88,25 @@ pub fn get_color(color: &Color) -> f32 {
     }
     eprintln!("error in get_color!");
     return 0.0;
+}
+
+pub fn get_int(float: f32, next_line: &usize) -> Result<i32, ()> {
+    if float.round() != float {
+        eprintln!("in line: {next_line}, a parameter requires a integer with: {float}, but received a non-integer!");
+        return Err(());
+    }
+    return Ok(float as i32);
+}
+
+pub fn get_number_or_bool(prefix: &Prefix, rest: &str, turtle : &Turtle, variables: &mut HashMap<String, f32>, next_line: &usize) -> Result<f32, ()> {
+    if is_bool(prefix) {
+        return get_bool(prefix, next_line);
+    }
+    else if is_number(prefix) {
+        return get_number(prefix, rest, turtle, variables, next_line);
+    }
+    else {
+        eprintln!("in line: {next_line}, trying to get a number of bool with: {rest}, but failed");
+        return Err(());
+    }
 }

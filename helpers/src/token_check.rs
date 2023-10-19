@@ -96,3 +96,7 @@ pub fn is_bool(prefix: &Prefix) -> bool {
         return false;
     }
 }
+
+pub fn is_number_or_bool(prefix: &Prefix) -> bool {
+    return is_number(prefix) || is_bool(prefix);
+}

@@ -4,6 +4,7 @@ use crate::turtle::*;
 use crate::token_check::*;
 use crate::variables::*;
 use crate::conditions::*;
+use crate::maths::*;
 use std::collections::HashMap;
 use std::collections::VecDeque;
 
@@ -14,9 +15,6 @@ pub fn parse(mut tokens: std::str::SplitWhitespace,
       conditions: &mut VecDeque<Condition>,
     ) -> Result<(), ()> {
     let first = tokens.next();
-    if let Some(first_word) = first {
-        println!("The first word: {first_word}");
-    }
     // check if this line is in while or if loop
     // and dothing if not in any condition (empty conditions)
     if let Some(condition) = conditions.back() {
@@ -31,116 +29,71 @@ pub fn parse(mut tokens: std::str::SplitWhitespace,
         }
     }
 
+    // match the first token (the function name)
     match first {
         Some("//") => {
             *_index += 1;
             return Ok(())
         },
+
         Some("PENUP") => {
             *_index += 1;
             //check no extra parameter
-            if tokens.next().is_none() {
-                ();
-            }
-            else {
-                eprintln!("Too many parameters in PENUP!");
+            if !tokens.next().is_none() {
+                eprintln!("Too many parameters in PENUP in index: {_index}!");
                 return Err(());                        
             }
             return turtle.penup()
         },
+
         Some("PENDOWN") => {
             println!("entered pendown!");
             *_index += 1;
             //check no extra parameter
-            if tokens.next().is_none() {
-                ();
-            }
-            else {
-                eprintln!("Too many parameters in PENDOWN!");
+            if !tokens.next().is_none() {
+                eprintln!("Too many parameters in PENDOWN in line: {_index}!");
                 return Err(());                        
             }
             return turtle.pendown()
         },
+
         Some("FORWARD") => {
             *_index += 1;
             //get the first parameter
             let (prefix, rest) = prefix_check(tokens.next());
             //check no extra parameter exists
-            if tokens.next().is_none() {
-                ();
-            }
-            else {
-                eprintln!("Too many parameters in FORWARD!");
+            if !tokens.next().is_none() {
+                eprintln!("Too many parameters in FORWARD in line: {_index}!");
                 return Err(());                        
             }
-            if is_number(&prefix) {
-                let res = get_number(&prefix, rest, turtle, variables);
-                match res {
-                    Ok(value) => return turtle.forward(value, image),
-                    Err(_e) => {
-                        return Err(());      
-                    }
-                }
-            }
-            //report error if the parameter is not a number
-            else {
-                eprintln!("Wrong parameters in FORWARD!");
-                return Err(());
-            }
-        }
+            let numpixels = get_number(&prefix, rest, turtle, variables, _index)?;
+            return turtle.forward(numpixels, image);
+        },
+
         Some("BACK") => {
             *_index += 1;
             //get the first parameter
             let (prefix, rest) = prefix_check(tokens.next());
             //check no extra parameter exists
-            if tokens.next().is_none() {
-                ();
-            }
-            else {
-                eprintln!("Too many parameters in BACK!");
+            if !tokens.next().is_none() {
+                eprintln!("Too many parameters in BACK in line: {_index}!");
                 return Err(());                        
             }
-            if is_number(&prefix) {
-                let res = get_number(&prefix, rest, turtle, variables);
-                match res {
-                    Ok(value) => return turtle.back(value, image),
-                    Err(_e) => {
-                        return Err(());      
-                    }
-                }
-            }
-            //report error if the parameter is not a number
-            else {
-                eprintln!("Wrong parameters in BACK!");
-                return Err(());
-            }
+                let numpixdels = get_number(&prefix, rest, turtle, variables, _index)?;
+                return turtle.back(numpixdels, image);
         },
+
         Some("LEFT") => {
             *_index += 1;
             //get the first parameter
             let (prefix, rest) = prefix_check(tokens.next());
             //check no extra parameter exists
-            if tokens.next().is_none() {
-                ();
-            }
-            else {
-                eprintln!("Too many parameters in LEFT!");
+            if !tokens.next().is_none() {
+                eprintln!("Too many parameters in LEFT in line: {_index}!");
                 return Err(());                        
             }
-            if is_number(&prefix) {
-                let res = get_number(&prefix, rest, turtle, variables);
-                match res {
-                    Ok(value) => return turtle.left(value, image),
-                    Err(_e) => {
-                        return Err(());      
-                    }
-                }
-            }
-            //report error if the parameter is not a number
-            else {
-                eprintln!("Wrong parameters in LEFT!");
-                return Err(());
-            }
+                let numpixels = get_number(&prefix, rest, turtle, variables, _index)?;
+                return turtle.left(numpixels, image);
         },
         Some("RIGHT") => {
             *_index += 1;
@@ -148,348 +101,225 @@ pub fn parse(mut tokens: std::str::SplitWhitespace,
             let (prefix, rest) = prefix_check(tokens.next());
             //check no extra parameter exists
             if tokens.next().is_none() {
-                ();
-            }
-            else {
-                eprintln!("Too many parameters in RIGHT!");
+                eprintln!("Too many parameters in RIGHT in line: {_index}!");
                 return Err(());                        
             }
-            if is_number(&prefix) {
-                let res = get_number(&prefix, rest, turtle, variables);
-                match res {
-                    Ok(value) => return turtle.right(value, image),
-                    Err(_e) => {
-                        return Err(());      
-                    }
-                }
-            }
-            //report error if the parameter is not a number
-            else {
-                eprintln!("Wrong parameters in RIGHT!");
-                return Err(());
-            }
+            let numpixdels = get_number(&prefix, rest, turtle, variables, &_index)?;
+            return turtle.right(numpixdels, image);
         },
+
         Some("SETPENCOLOR") => {
             *_index += 1;
             //get the first parameter
             let (prefix, rest) = prefix_check(tokens.next());
             //check no extra parameter exists
-            if tokens.next().is_none() {
-                ();
-            }
-            else {
-                eprintln!("Too many parameters in SETPENCOLOR!");
+            if !tokens.next().is_none() {
+                eprintln!("Too many parameters in SETPENCOLOR in line {_index}!");
                 return Err(());                        
             }
-            if is_number(&prefix) {
-                let res = get_number(&prefix, rest, turtle, variables);
-                match res {
-                    Ok(value) => {
-                        //check the input is a integer
-                        if value.round() != value {
-                            eprintln!("SETPENCOLOR need a integer!");
-                            return Err(());
-                        }
-                        return turtle.setpencolor(value as i32)
-                    },
-                    Err(_e) => {
-                        return Err(());      
-                    }
-                }
-            }
-            //report error if the parameter is not a number
-            else {
-                eprintln!("Wrong parameters in SETPENCOLOR!");
-                return Err(());
-            }
-        }
+
+            let value = get_number(&prefix, rest, turtle, variables, _index)?;
+                //check the input is a integer
+                let value_int = get_int(value, _index)?;
+                return turtle.setpencolor(value_int);
+        },
+
         Some("TURN") => {
             *_index += 1;
             //get the first parameter
             let (prefix, rest) = prefix_check(tokens.next());
             //check no extra parameter exists
-            if tokens.next().is_none() {
-                ();
-            }
-            else {
-                eprintln!("Too many parameters in TURN!");
+            if !tokens.next().is_none() {
+                eprintln!("Too many parameters in TURN in line: {_index}");
                 return Err(());                        
             }
-            if is_number(&prefix) {
-                let res = get_number(&prefix, rest, turtle, variables);
-                match res {
-                    Ok(value) => {
-                        //check the input is a integer
-                        if value.round() != value {
-                            eprintln!("TURN need a integer!");
-                            return Err(());
-                        }
-                        return turtle.turn(value as i32)
-                    },
-                    Err(_e) => {
-                        return Err(());      
-                    }
-                }
-            }
-            //report error if the parameter is not a number
-            else {
-                eprintln!("Wrong parameters in TURN!");
-                return Err(());
-            }
-        }
+                let value = get_number(&prefix, rest, turtle, variables, _index)?;
+                //check the input is a integer
+                let value_int = get_int(value, _index)?;
+                return turtle.turn(value_int);
+        },
+
         Some("SETHEADING") => {
             *_index += 1;
             //get the first parameter
             let (prefix, rest) = prefix_check(tokens.next());
             //check no extra parameter exists
-            if tokens.next().is_none() {
-                ();
-            }
-            else {
-                eprintln!("Too many parameters in SETHEADING!");
+            if !tokens.next().is_none() {
+                eprintln!("Too many parameters in SETHEADING in line: {_index}!");
                 return Err(());                        
             }
-            if is_number(&prefix) {
-                let res = get_number(&prefix, rest, turtle, variables);
-                match res {
-                    Ok(value) => {
-                        //check the input is a integer
-                        if value.round() != value {
-                            eprintln!("SETHEADING need a integer!");
-                            return Err(());
-                        }
-                        return turtle.setheading(value as i32)
-                    },
-                    Err(_e) => {
-                        return Err(());      
-                    }
-                }
-            }
-            //report error if the parameter is not a number
-            else {
-                eprintln!("Wrong parameters in TURN!");
-                return Err(());
-            }
+                let value = get_number(&prefix, rest, turtle, variables, _index)?;
+                let value_int = get_int(value, _index)?;
+                return turtle.setheading(value_int);
         }
+
         Some("SETX") => {
             *_index += 1;
             //get the first parameter
             let (prefix, rest) = prefix_check(tokens.next());
             //check no extra parameter exists
-            if tokens.next().is_none() {
-                ();
-            }
-            else {
-                eprintln!("Too many parameters in SETX!");
+            if !tokens.next().is_none() {
+                eprintln!("Too many parameters in SETX in line: {_index}!");
                 return Err(());                        
             }
-            if is_number(&prefix) {
-                let res = get_number(&prefix, rest, turtle, variables);
-                match res {
-                    Ok(value) => {
-                        return turtle.setx(value);
-                    },
-                    Err(_e) => {
-                        return Err(());      
-                    }
-                }
-            }
-            //report error if the parameter is not a number
-            else {
-                eprintln!("Wrong parameters in TURN!");
-                return Err(());
-            }
-        }
+            let value = get_number(&prefix, rest, turtle, variables, _index)?;
+            return turtle.setx(value);
+        },
+
         Some("SETY") => {
             *_index += 1;
             //get the first parameter
             let (prefix, rest) = prefix_check(tokens.next());
             //check no extra parameter exists
-            if tokens.next().is_none() {
-                ();
-            }
-            else {
-                eprintln!("Too many parameters in SETY!");
+            if !tokens.next().is_none() {
+                eprintln!("Too many parameters in SETY in line: {_index}!");
                 return Err(());                        
             }
-            if is_number(&prefix) {
-                let res = get_number(&prefix, rest, turtle, variables);
-                match res {
-                    Ok(value) => {
-                        return turtle.sety(value);
-                    },
-                    Err(_e) => {
-                        return Err(());      
-                    }
-                }
-            }
-            //report error if the parameter is not a number
-            else {
-                eprintln!("Wrong parameters in SETY!");
-                return Err(());
-            }
-        }
+            let value = get_number(&prefix, rest, turtle, variables, _index)?;
+            return turtle.sety(value);
+        },
+
         Some("MAKE") => {
             *_index += 1;
             //get the first parameter
-            let (prefix, rest1) = prefix_check(tokens.next());
+            let (prefix, variable_name) = prefix_check(tokens.next());
             //check grammer
             if prefix != Prefix::QuotationVar {
-                eprintln!("MAKE requires a variable as parameter!");
+                eprintln!("in line: {_index}, MAKE requires a variable as parameter!");
                 return Err(());
             }
             else {
                 //get the second parameter
-                let (prefix, rest2) = prefix_check(tokens.next());
-                if is_number(&prefix) {
-                    let value = get_number(&prefix, rest2, turtle, variables);
-                    match value {
-                        Ok(value) => {
-                            make(variables, rest1, value);
-                            return Ok(());
-                        },
-                        Err(_e) => {
-                            eprintln!("Wrong parameter in MAKE!");
-                            return Err(());
-                        },
-                    }
-                }
-                else if is_bool(&prefix) {
-                    make(variables, rest1, get_bool(&prefix));
-                    return Ok(());
-                }
-                else {
-                    eprintln!("The second MAKE parameter is not not valid!");
-                    return Err(());
-                }
+                let (prefix, value_str) = prefix_check(tokens.next());
+                let value = get_number_or_bool(&prefix, value_str, turtle, variables, _index)?;
+                make(variables, variable_name, value);
+                return Ok(());
             }
-        }
+        },
         Some("ADDASSIGN") => {
             *_index += 1;
             //get the first parameter
             let (prefix, rest1) = prefix_check(tokens.next());
             //check grammer
             if prefix != Prefix::QuotationVar {
-                eprintln!("ADDASSIGN requires a variable as parameter!");
+                eprintln!("in line: {_index}, ADDASSIGN requires a variable as parameter!");
                 return Err(());
             }
             else {
                 //get the second parameter
                 let (prefix, rest2) = prefix_check(tokens.next());
-                if is_number(&prefix) {
-                    let value = get_number(&prefix, rest2, turtle, variables);
-                    match value {
-                        Ok(value) => {
-                            return addassign(variables, rest1, value);
-                        },
-                        Err(_e) => {
-                            eprintln!("Wrong parameter in ADDASSIGN!");
-                            return Err(());
-                        },
-                    }
-                }
-                else {
-                    eprintln!("The second ADDASSIGN parameter is not a number!");
-                    return Err(());
-                }
+                let value = get_number(&prefix, rest2, turtle, variables, _index)?;
+                return addassign(variables, rest1, value);
             }
-        }
+        },
 
         Some("IF") => {
             // check if it is in another IF/WHILE bracket
-            match conditions.back() {
-                Some(value) => {
-                    if value.result == false {
-                        // if is in another false bracket, do not execute, but just add a new false condition in (to match its ])
-                        // if is in a true bracket, execute as normal
-                        conditions.push_back(Condition::new(ConditionType::IF, _index.clone(), false));
-                        *_index += 1;
-                        return Ok(());
-                    }
-                },
-                // not in, so do nothing
-                None => (),
+            if let Some(value) = conditions.back() {
+                if value.result == false {
+                    // if is in another false bracket, do not execute, but just add a new false condition in (to match its ])
+                    // if is in a true bracket, execute as normal
+                    conditions.push_back(Condition::new(ConditionType::IF, _index.clone(), false));
+                    *_index += 1;
+                    return Ok(());
+                }
             }
+
             //get next key word
-            println!("Entered IF");
             let res = tokens.next();
-            let keyword: &str;
-            match res {
-                Some(value) => keyword = value,
-                None => {
-                    eprintln!("no parameter after IF keyword");
-                    return Err(());
-                },
+            let next_line = *_index + 1;
+            let operator = get_operator(res, &next_line)?;
+
+            //get the first parameter of IF
+            let (prefix, rest) = prefix_check(tokens.next());
+            let value1 = get_number_or_bool(&prefix, rest, turtle, variables, &next_line)?;
+            let bool1 = is_bool(&prefix);
+
+            //get the second parameter of IF
+            let (prefix, rest) = prefix_check(tokens.next());
+            let value2 = get_number_or_bool(&prefix, rest, turtle, variables, &next_line)?;
+            let bool2 = is_bool(&prefix);
+
+            //check if condition is true
+            if is_return_bool(&operator) {
+                match operator {
+                    Operator::EQ => {
+                        if value1 == value2 {
+                            conditions.push_back(Condition::new(ConditionType::IF, _index.clone(), true));
+                        }
+                        // if condition is false
+                        else {
+                            conditions.push_back(Condition::new(ConditionType::IF, _index.clone(), false));
+                        }
+                    },
+                    Operator::NE => {
+                        if value1 != value2 {
+                            conditions.push_back(Condition::new(ConditionType::IF, _index.clone(), true));
+                        }
+                        // if condition is false
+                        else {
+                            conditions.push_back(Condition::new(ConditionType::IF, _index.clone(), false));
+                        }
+                    },
+                    Operator::GT => {
+                        if bool1 || bool2 {
+                            eprintln!("Error in line: {next_line}, GT requires 2 non-bool numbers!");
+                        }
+                        if value1 > value2 {
+                            conditions.push_back(Condition::new(ConditionType::IF, _index.clone(), true));
+                        }
+                        // if condition is false
+                        else {
+                            conditions.push_back(Condition::new(ConditionType::IF, _index.clone(), false));
+                        }
+                    },
+                    Operator::LT => {
+                        if bool1 || bool2 {
+                            eprintln!("Error in line: {next_line}, LT requires 2 non-bool numbers!");
+                        }
+                        if value1 < value2 {
+                            conditions.push_back(Condition::new(ConditionType::IF, _index.clone(), true));
+                        }
+                        // if condition is false
+                        else {
+                            conditions.push_back(Condition::new(ConditionType::IF, _index.clone(), false));
+                        }
+                    },
+                    Operator::AND => {
+                        if !bool1 || !bool2 {
+                            eprintln!("Error in line: {next_line}, AND requires 2 bool numbers!");
+                        }
+                        if value1 == TRUE  && value2 == TRUE {
+                            conditions.push_back(Condition::new(ConditionType::IF, _index.clone(), true));
+                        }
+                        // if condition is false
+                        else {
+                            conditions.push_back(Condition::new(ConditionType::IF, _index.clone(), false));
+                        }
+                    },
+                    Operator::OR => {
+                        if !bool1 || !bool2 {
+                            eprintln!("Error in line: {next_line}, OR requires 2 bool numbers!");
+                        }
+                        if value1 == TRUE  || value2 == TRUE {
+                            conditions.push_back(Condition::new(ConditionType::IF, _index.clone(), true));
+                        }
+                        // if condition is false
+                        else {
+                            conditions.push_back(Condition::new(ConditionType::IF, _index.clone(), false));
+                        }
+                    },
+                    _ => {
+                        eprintln!("Something wrong when checking if operator is bool in line {next_line}");
+                        return Err(());
+                    },
+                }
             }
-            if keyword != "EQ" {
-                eprintln!("keyword after IF is not EQ!");
+            else {
+                eprintln!("In line {next_line}, The result of operator: {operator:?} of IF condition is not a bool! ");
                 return Err(());
             }
-            //get the first parameter of IF
-            let value1: f32;
-            let (prefix, rest) = prefix_check(tokens.next());
-            // if it is not a number
-            if !is_number(&prefix) {
-                // check if it is TRUE or FALSE
-                if prefix == Prefix::TRUE {
-                    value1 = TRUE;
-                }
-                else if prefix == Prefix::TRUE {
-                    value1 = FALSE;
-                }
-                else {
-                    // if not, it is not valid.
-                    eprintln!("some parameters in IF is not valid!");
-                    return Err(());
-                }
-            }
-            // it is a number, try to get it
-            else {
-                match get_number(&prefix, rest, turtle, variables) {
-                    Ok(value) => value1 = value,
-                    Err(_) => {
-                        eprintln!("Some variables in IF are not defined!");
-                        return Err(());
-                    },
-                }
-            }
-            //get the second parameter of IF
-            let value2: f32;
-            let (prefix, rest) = prefix_check(tokens.next());
-            // if it is not a number
-            if !is_number(&prefix) {
-                // check if it is TRUE or FALSE
-                if prefix == Prefix::TRUE {
-                    value2 = TRUE;
-                }
-                else if prefix == Prefix::TRUE {
-                    value2 = FALSE;
-                }
-                else {
-                    // if not, it is not valid.
-                    eprintln!("some parameters in IF is not valid!");
-                    return Err(());
-                }
-            }
-            // it is a number, try to get it
-            else {
-                match get_number(&prefix, rest, turtle, variables) {
-                    Ok(value) => value2 = value,
-                    Err(_) => {
-                        eprintln!("Some variables in IF are not defined!");
-                        return Err(());
-                    },
-                }
-            }
-            //check if condition is true
-            println!("{value1}, {value2}");
-            if value1 == value2 {
-                conditions.push_back(Condition::new(ConditionType::IF, _index.clone(), true));
-            }
-            // if condition is false
-            else {
-                conditions.push_back(Condition::new(ConditionType::IF, _index.clone(), false));
-            }
+
             // check [ exist
             if let Some(value) = tokens.next() {
                 if value == "[" {
@@ -505,97 +335,37 @@ pub fn parse(mut tokens: std::str::SplitWhitespace,
         },
         Some("WHILE") => {
             // check if it is in another IF/WHILE bracket
-            match conditions.back() {
-                Some(value) => {
-                    if value.result == false {
-                        // if is in another false bracket, do not execute, but just add a new false condition in (to match its ])
-                        // if is in a true bracket, execute as normal
-                        conditions.push_back(Condition::new(ConditionType::WHILE, _index.clone(), false));
-                        *_index += 1;
-                        return Ok(());
-                    }
-                },
-                // not in, so do nothing
-                None => (),
+            if let Some(value) = conditions.back() {
+                if value.result == false {
+                    // if is in another false bracket, do not execute, but just add a new false condition in (to match its ])
+                    // if is in a true bracket, execute as normal
+                    conditions.push_back(Condition::new(ConditionType::WHILE, _index.clone(), false));
+                    *_index += 1;
+                    return Ok(());
+                }
             }
+
             //get next key word
             let res = tokens.next();
-            let keyword: &str;
-            match res {
-                Some(value) => keyword = value,
-                None => {
-                    eprintln!("no parameter after WHILE keyword");
-                    return Err(());
-                },
-            }
-            if keyword != "EQ" {
-                eprintln!("keyword after WHILE is not EQ!");
-                return Err(());
-            }
+            let next_line = *_index + 1;
+            let operator = get_operator(res, &next_line)?;
 
             //get the first parameter of WHILE
-            let value1: f32;
             let (prefix, rest) = prefix_check(tokens.next());
-            // if it is not a number
-            if !is_number(&prefix) {
-                // check if it is TRUE or FALSE
-                if prefix == Prefix::TRUE {
-                    value1 = TRUE;
-                }
-                else if prefix == Prefix::TRUE {
-                    value1 = FALSE;
-                }
-                else {
-                    // if not, it is not valid.
-                    eprintln!("some parameters in WHILE is not valid!");
-                    return Err(());
-                }
-            }
-            // it is a number, try to get it
-            else {
-                match get_number(&prefix, rest, turtle, variables) {
-                    Ok(value) => value1 = value,
-                    Err(_) => {
-                        eprintln!("Some variables in WHILE are not defined!");
-                        return Err(());
-                    },
-                }
-            }
+            let value1 = get_number_or_bool(&prefix, rest, turtle, variables, &next_line)?;
+            let bool1 = is_bool(&prefix);
 
-            //get the first parameter of WHILE
-            let value2: f32;
+            //get the second parameter of WHILE
             let (prefix, rest) = prefix_check(tokens.next());
-            // if it is not a number
-            if !is_number(&prefix) {
-                // check if it is TRUE or FALSE
-                if prefix == Prefix::TRUE {
-                    value2 = TRUE;
-                }
-                else if prefix == Prefix::TRUE {
-                    value2 = FALSE;
-                }
-                else {
-                    // if not, it is not valid.
-                    eprintln!("some parameters in WHILE is not valid!");
-                    return Err(());
-                }
-            }
-            // it is a number, try to get it
-            else {
-                match get_number(&prefix, rest, turtle, variables) {
-                    Ok(value) => value2 = value,
-                    Err(_) => {
-                        eprintln!("Some variables in WHILE are not defined!");
-                        return Err(());
-                    },
-                }
-            }
+            let value2 = get_number_or_bool(&prefix, rest, turtle, variables, &next_line)?;
+            let bool2 = is_bool(&prefix);
 
             // check if this is a new while, or just a repeat
             let mut repeat = false;
             match conditions.back_mut() {
                 Some(value) => {
                     let last_condition = value;
+                    // it is a repeat since the code line is the same
                     if last_condition.index == *_index {
                         repeat = true;
                     }
@@ -605,21 +375,83 @@ pub fn parse(mut tokens: std::str::SplitWhitespace,
             }
 
             //check if condition is true
-            if value1 == value2 {
-                // if it is a new "while", add in the Vecdequede
-                if !repeat { 
-                conditions.push_back(Condition::new(ConditionType::WHILE, _index.clone(), true));
+            if is_return_bool(&operator) {
+                match operator {
+                    Operator::EQ => {
+                        if value1 == value2 {
+                            conditions.push_back(Condition::new(ConditionType::IF, _index.clone(), true));
+                        }
+                        // if condition is false
+                        else {
+                            conditions.push_back(Condition::new(ConditionType::IF, _index.clone(), false));
+                        }
+                    },
+                    Operator::NE => {
+                        if value1 != value2 {
+                            conditions.push_back(Condition::new(ConditionType::IF, _index.clone(), true));
+                        }
+                        // if condition is false
+                        else {
+                            conditions.push_back(Condition::new(ConditionType::IF, _index.clone(), false));
+                        }
+                    },
+                    Operator::GT => {
+                        if bool1 || bool2 {
+                            eprintln!("Error in line: {next_line}, GT requires 2 non-bool numbers!");
+                        }
+                        if value1 > value2 {
+                            conditions.push_back(Condition::new(ConditionType::IF, _index.clone(), true));
+                        }
+                        // if condition is false
+                        else {
+                            conditions.push_back(Condition::new(ConditionType::IF, _index.clone(), false));
+                        }
+                    },
+                    Operator::LT => {
+                        if bool1 || bool2 {
+                            eprintln!("Error in line: {next_line}, LT requires 2 non-bool numbers!");
+                        }
+                        if value1 < value2 {
+                            conditions.push_back(Condition::new(ConditionType::IF, _index.clone(), true));
+                        }
+                        // if condition is false
+                        else {
+                            conditions.push_back(Condition::new(ConditionType::IF, _index.clone(), false));
+                        }
+                    },
+                    Operator::AND => {
+                        if !bool1 || !bool2 {
+                            eprintln!("Error in line: {next_line}, AND requires 2 bool numbers!");
+                        }
+                        if value1 == TRUE  && value2 == TRUE {
+                            conditions.push_back(Condition::new(ConditionType::IF, _index.clone(), true));
+                        }
+                        // if condition is false
+                        else {
+                            conditions.push_back(Condition::new(ConditionType::IF, _index.clone(), false));
+                        }
+                    },
+                    Operator::OR => {
+                        if !bool1 || !bool2 {
+                            eprintln!("Error in line: {next_line}, OR requires 2 bool numbers!");
+                        }
+                        if value1 == TRUE  || value2 == TRUE {
+                            conditions.push_back(Condition::new(ConditionType::IF, _index.clone(), true));
+                        }
+                        // if condition is false
+                        else {
+                            conditions.push_back(Condition::new(ConditionType::IF, _index.clone(), false));
+                        }
+                    },
+                    _ => {
+                        eprintln!("Something wrong when checking if operator is bool in line {next_line}");
+                        return Err(());
+                    },
                 }
             }
-            // if condition is false
             else {
-                if !repeat {
-                conditions.push_back(Condition::new(ConditionType::WHILE, _index.clone(), false));
-                }
-                else {
-                    let last_condition = conditions.back_mut().unwrap();
-                    last_condition.turn_off();
-                }
+                eprintln!("In line {next_line}, The result of operator: {operator:?} of WHILE condition is not a bool! ");
+                return Err(());
             }
 
             // check [ exist
