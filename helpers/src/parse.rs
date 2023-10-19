@@ -47,7 +47,6 @@ pub fn parse(mut tokens: std::str::SplitWhitespace,
         },
 
         Some("PENDOWN") => {
-            println!("entered pendown!");
             *_index += 1;
             //check no extra parameter
             if !tokens.next().is_none() {
@@ -79,8 +78,8 @@ pub fn parse(mut tokens: std::str::SplitWhitespace,
                 eprintln!("Too many parameters in BACK in line: {_index}!");
                 return Err(());                        
             }
-                let numpixdels = get_number(&prefix, rest, turtle, variables, _index)?;
-                return turtle.back(numpixdels, image);
+            let numpixdels = get_number(&prefix, rest, turtle, variables, _index)?;
+            return turtle.back(numpixdels, image);
         },
 
         Some("LEFT") => {
@@ -92,15 +91,15 @@ pub fn parse(mut tokens: std::str::SplitWhitespace,
                 eprintln!("Too many parameters in LEFT in line: {_index}!");
                 return Err(());                        
             }
-                let numpixels = get_number(&prefix, rest, turtle, variables, _index)?;
-                return turtle.left(numpixels, image);
+            let numpixels = get_number(&prefix, rest, turtle, variables, _index)?;
+            return turtle.left(numpixels, image);
         },
         Some("RIGHT") => {
             *_index += 1;
             //get the first parameter
             let (prefix, rest) = prefix_check(tokens.next());
             //check no extra parameter exists
-            if tokens.next().is_none() {
+            if !tokens.next().is_none() {
                 eprintln!("Too many parameters in RIGHT in line: {_index}!");
                 return Err(());                        
             }
@@ -375,24 +374,25 @@ pub fn parse(mut tokens: std::str::SplitWhitespace,
             }
 
             //check if condition is true
+            let while_result: bool;
             if is_return_bool(&operator) {
                 match operator {
                     Operator::EQ => {
                         if value1 == value2 {
-                            conditions.push_back(Condition::new(ConditionType::IF, _index.clone(), true));
+                            while_result = true;
                         }
                         // if condition is false
                         else {
-                            conditions.push_back(Condition::new(ConditionType::IF, _index.clone(), false));
+                            while_result = false;
                         }
                     },
                     Operator::NE => {
                         if value1 != value2 {
-                            conditions.push_back(Condition::new(ConditionType::IF, _index.clone(), true));
+                            while_result = true;
                         }
                         // if condition is false
                         else {
-                            conditions.push_back(Condition::new(ConditionType::IF, _index.clone(), false));
+                            while_result = false;
                         }
                     },
                     Operator::GT => {
@@ -400,11 +400,11 @@ pub fn parse(mut tokens: std::str::SplitWhitespace,
                             eprintln!("Error in line: {next_line}, GT requires 2 non-bool numbers!");
                         }
                         if value1 > value2 {
-                            conditions.push_back(Condition::new(ConditionType::IF, _index.clone(), true));
+                            while_result = true;
                         }
                         // if condition is false
                         else {
-                            conditions.push_back(Condition::new(ConditionType::IF, _index.clone(), false));
+                            while_result = false;
                         }
                     },
                     Operator::LT => {
@@ -412,11 +412,11 @@ pub fn parse(mut tokens: std::str::SplitWhitespace,
                             eprintln!("Error in line: {next_line}, LT requires 2 non-bool numbers!");
                         }
                         if value1 < value2 {
-                            conditions.push_back(Condition::new(ConditionType::IF, _index.clone(), true));
+                            while_result = true;
                         }
                         // if condition is false
                         else {
-                            conditions.push_back(Condition::new(ConditionType::IF, _index.clone(), false));
+                            while_result = false;
                         }
                     },
                     Operator::AND => {
@@ -424,11 +424,11 @@ pub fn parse(mut tokens: std::str::SplitWhitespace,
                             eprintln!("Error in line: {next_line}, AND requires 2 bool numbers!");
                         }
                         if value1 == TRUE  && value2 == TRUE {
-                            conditions.push_back(Condition::new(ConditionType::IF, _index.clone(), true));
+                            while_result = true;
                         }
                         // if condition is false
                         else {
-                            conditions.push_back(Condition::new(ConditionType::IF, _index.clone(), false));
+                            while_result = false;
                         }
                     },
                     Operator::OR => {
@@ -436,11 +436,11 @@ pub fn parse(mut tokens: std::str::SplitWhitespace,
                             eprintln!("Error in line: {next_line}, OR requires 2 bool numbers!");
                         }
                         if value1 == TRUE  || value2 == TRUE {
-                            conditions.push_back(Condition::new(ConditionType::IF, _index.clone(), true));
+                            while_result = true;
                         }
                         // if condition is false
                         else {
-                            conditions.push_back(Condition::new(ConditionType::IF, _index.clone(), false));
+                            while_result = false;
                         }
                     },
                     _ => {
@@ -452,6 +452,21 @@ pub fn parse(mut tokens: std::str::SplitWhitespace,
             else {
                 eprintln!("In line {next_line}, The result of operator: {operator:?} of WHILE condition is not a bool! ");
                 return Err(());
+            }
+
+            if repeat {
+                if !while_result {
+                    let last_condition = conditions.back_mut().unwrap();
+                    last_condition.turn_off();
+                }
+            }
+            else {
+                if !while_result {
+                    conditions.push_back(Condition::new(ConditionType::WHILE, _index.clone(), false));
+                }
+                else {
+                    conditions.push_back(Condition::new(ConditionType::WHILE, _index.clone(), true));
+                }
             }
 
             // check [ exist
