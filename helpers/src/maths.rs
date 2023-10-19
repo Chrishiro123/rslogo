@@ -80,7 +80,7 @@ pub fn get_operator(token: Option<&str>, next_line: &usize) -> Result<Operator, 
     }
 }
 
-pub fn math_calculation<'a, 'b>(tokens: &'a mut std::str::SplitWhitespace, 
+pub fn math_calculation(tokens: &mut std::str::SplitWhitespace, 
     first_operator: &str, 
     next_line: &usize, 
     turtle: &Turtle, 
@@ -98,6 +98,7 @@ pub fn math_calculation<'a, 'b>(tokens: &'a mut std::str::SplitWhitespace,
                 if is_operator(token) {
                     to_push += 2;
                 }
+                to_push -= 1;
                 vec_deque.push_back(token);
 
             },
@@ -107,7 +108,7 @@ pub fn math_calculation<'a, 'b>(tokens: &'a mut std::str::SplitWhitespace,
             },
         }
     }
-    let iter_rev = vec_deque.iter().rev();
+    let iter_rev = vec_deque.into_iter().rev();
     // stack for storing numbers
     let mut stack: VecDeque<f32> = VecDeque::new();
 
@@ -141,22 +142,18 @@ pub fn math_calculation<'a, 'b>(tokens: &'a mut std::str::SplitWhitespace,
         // store the value of token to stack if it is a operand
         else {
             let (prefix, rest) = prefix_check(Some(token));
-            let value = get_number_or_bool(&prefix, rest, turtle, variables, next_line)?;
+            let value = get_number_or_bool(&prefix, rest, turtle, variables, next_line, tokens)?;
             stack.push_back(value);
         }
-    }
-    // after calculation, do error checking
-    if !vec_deque.is_empty() {
-        eprintln!("in line {next_line}, too much operands in calculation!");
-        return Err(());
     }
     //get the final result
     let result = stack.pop_back();
     match result {
         Some(final_value) => {
-            // should not happen
+            // stack have more than one result, which means too much operands
             if !stack.is_empty() {
-                eprintln!("in line {next_line}, more than one result in the calculation!")
+                eprintln!("in line {next_line}, stack have more than one result, which means too much operands!");
+                return Err(());
             }
             return Ok(final_value);
         },
@@ -270,7 +267,7 @@ pub fn calculation(operator: &Operator, operand1: f32, operand2: f32, next_line:
 }
 
 // check if a f32 is the specified true/false f32 value
-pub fn is_bool_f32 (operand: f32) -> bool {
+pub fn is_bool_f32(operand: f32) -> bool {
     if operand == TRUE || operand == FALSE {
         return true;
     }

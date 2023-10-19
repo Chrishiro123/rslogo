@@ -1,4 +1,5 @@
 use std::collections::HashMap;
+use crate::maths::math_calculation;
 use crate::token_check::{is_number, is_bool};
 use crate::{token_check::Prefix, turtle::Turtle};
 use unsvg::Color;
@@ -27,7 +28,13 @@ pub fn addassign<'a>(variables: &mut HashMap<String, f32>, variable: &str, value
     }
 }
 
-pub fn get_number(prefix: &Prefix, rest: &str, turtle : &Turtle, variables: &HashMap<String, f32>, next_line: &usize) -> Result<f32, ()> {
+pub fn get_number(prefix: &Prefix, 
+    rest: &str, 
+    turtle : &Turtle, 
+    variables: &HashMap<String, f32>, 
+    next_line: &usize,
+    tokens: &mut std::str::SplitWhitespace,
+) -> Result<f32, ()> {
     //logo code start from line 1, while index start from 0, so next line is actually the current line in logo code
     if is_number(prefix) {
         match prefix {
@@ -36,6 +43,7 @@ pub fn get_number(prefix: &Prefix, rest: &str, turtle : &Turtle, variables: &Has
             &Prefix::HEADING => Ok(turtle.direction as f32),
             &Prefix::COLOR => Ok(get_color(turtle.color)),
             &Prefix::QuotationValue => Ok(rest.parse::<f32>().unwrap()),
+            &Prefix::OperatorValue => return math_calculation(tokens, rest, next_line, turtle, variables),
             &Prefix::Colon => {
                 match variables.get(rest) {
                     Some(value) => {
@@ -98,7 +106,14 @@ pub fn get_int(float: f32, next_line: &usize) -> Result<i32, ()> {
     return Ok(float as i32);
 }
 
-pub fn get_number_or_bool(prefix: &Prefix, rest: &str, turtle : &Turtle, variables: &HashMap<String, f32>, next_line: &usize) -> Result<f32, ()> {
+pub fn get_number_or_bool(prefix: &Prefix, 
+    rest: &str, 
+    turtle : &Turtle, 
+    variables: &HashMap<String, f32>, 
+    next_line: &usize, 
+    tokens: &mut std::str::SplitWhitespace
+) -> Result<f32, ()> {
+
     // check if it is a variable containing a bool
     if prefix == &Prefix::Colon {
         if let Some(value) = variables.get(rest) {
@@ -109,17 +124,28 @@ pub fn get_number_or_bool(prefix: &Prefix, rest: &str, turtle : &Turtle, variabl
                 return Ok(FALSE);
             }
         }
+        else {
+            eprintln!("in line {next_line}, failed to retrieve a variable: {rest}");
+            return Err(());
+        }
     }
+
     // check if it is a bool value
     if is_bool(prefix) {
         return get_bool(prefix, next_line);
     }
+    
+    // check if it is a operator returning bool
+    if prefix == &Prefix::OperatorBool {
+        let value = math_calculation(tokens, rest, next_line, turtle, variables)?;
+        return Ok(value);
+    }
     // check if it is a number value or variable
     else if is_number(prefix) {
-        return get_number(prefix, rest, turtle, variables, next_line);
+        return get_number(prefix, rest, turtle, variables, next_line, tokens);
     }
     else {
-        eprintln!("in line: {next_line}, trying to get a number of bool with: {rest}, but failed");
+        eprintln!("in line: {next_line}, trying to get a number or bool with: {rest}, but failed");
         return Err(());
     }
 }

@@ -14,8 +14,11 @@ pub enum Prefix {
     Wrong,
     TRUE,
     FALSE,
+    OperatorBool,
+    OperatorValue,
 }
 
+// analyse the token if exist, return (Prefix::Empty, "") if empty
 pub fn prefix_check(token_or_not: Option<&str>) -> (Prefix, &str) {
     if let Some(token) = token_or_not {
         if token == "XCOR" {
@@ -30,11 +33,21 @@ pub fn prefix_check(token_or_not: Option<&str>) -> (Prefix, &str) {
         else if token == "COLOR" {
             return (Prefix::COLOR, "");
         }
-        else if token == ":TRUE" {
-            return (Prefix::TRUE, "");
+        else if token == "EQ"
+            || token == "NE"
+            || token == "GT"
+            || token == "LT"
+            || token == "AND"
+            || token == "OR"
+        {
+            return (Prefix::OperatorBool, token);
         }
-        else if token == ":FALSE" {
-            return (Prefix::FALSE, "");
+        else if token == "+"
+            || token == "-"
+            || token == "*"
+            || token == "/"
+        {
+            return (Prefix::OperatorValue, token);    
         }
         else if token.chars().next().unwrap() == '"' {
             if let Some(rest) = token.get(1..) {
@@ -72,6 +85,8 @@ pub fn prefix_check(token_or_not: Option<&str>) -> (Prefix, &str) {
     }
 }
 
+// check if the token is potentially a number 
+// (if it is marked with :, the variable can be either a number or bool or not defined)
 pub fn is_number(prefix: &Prefix) -> bool {
     match prefix {
         &Prefix::XCOR => return true,
@@ -85,6 +100,8 @@ pub fn is_number(prefix: &Prefix) -> bool {
         &Prefix::Wrong => return false,
         &Prefix::TRUE => return false,
         &Prefix::FALSE => return false,
+        &Prefix::OperatorBool => return false,
+        &Prefix::OperatorValue => return true,
     }
 }
 
