@@ -99,9 +99,22 @@ pub fn get_int(float: f32, next_line: &usize) -> Result<i32, ()> {
 }
 
 pub fn get_number_or_bool(prefix: &Prefix, rest: &str, turtle : &Turtle, variables: &mut HashMap<String, f32>, next_line: &usize) -> Result<f32, ()> {
+    // check if it is a variable containing a bool
+    if prefix == &Prefix::Colon {
+        if let Some(value) = variables.get(rest) {
+            if value == &TRUE {
+                return Ok(TRUE);
+            }
+            else if value == &FALSE {
+                return Ok(FALSE);
+            }
+        }
+    }
+    // check if it is a bool value
     if is_bool(prefix) {
         return get_bool(prefix, next_line);
     }
+    // check if it is a number value or variable
     else if is_number(prefix) {
         return get_number(prefix, rest, turtle, variables, next_line);
     }
