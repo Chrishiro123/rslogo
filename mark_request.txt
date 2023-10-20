@@ -6,10 +6,10 @@ Please mark stages that are complete with an [X].
 Stages that are partially complete should be marked with a [?].
 Stages that are not complete should be left blank (like [ ]).
 
-> [ ] Stage 1 (Pen Controls)
-> [ ] Stage 2 (Variables + Queries)
-> [ ] Stage 3 (If + While)
-> [ ] Stage 4 (The Stack)
+> [X] Stage 1 (Pen Controls)
+> [X] Stage 2 (Variables + Queries)
+> [X] Stage 3 (If + While)
+> [X] Stage 4 (The Stack)
 > [ ] Stage 5 (Procedures)
 
 ## Design Excellence
@@ -18,16 +18,22 @@ If you have completed a "design excellence" task, please write what
 the task was below (note, it MUST be on the list in the assignment or
 approved by COMP6991 staff).
 
->
+>Make your errors beautiful.
 
 Please write a paragraph or two (max. 250 words) describing how your design was
 influenced by this challenge, with specific reference to sections of your code.
 If you completed the "Pull Request" design excellence, please just leave a link
 to your PR.
 
->
->
->
+>The design is significantly influenced by the design. I implement this challenge after all work is done.
+As a result, it has huge workload to change all error handling stuff which consumed me a whole afternoon.
+My original design was just returnResult<(), ()>, and eprintln the error before the return Err(()) to main
+function. The design was simple but cargo clippy do not want me to do that, so I created a custom Err type
+containing error message (implemented in helpers/err_handling.rs) to main, and eprintln it. Also it have no 
+benefit in this simple program, returning a err containing error message making the design more usable in 
+the future. And by highlighting keyword in error message with color, the debugging work is easiler, especially 
+when the error message is very long. Overall, althoughmodifying error handling was painful, it makes my design 
+more usable.
 
 ## Design Limitations
 
@@ -35,7 +41,19 @@ If you made any design decisions which you now regret making; but don't to go ba
 let us know here. You can make up your design marks by acknowledging up to 5 things you would do
 differently now.
 
-> - TODO
+> 1. I want to print which line of code the error occured in the logo code, and I pass index variables 
+to every function that may cause error. I would have just print it in the main function when a error is
+occured.
+
+> 2. I does not report where in the line the error is. I planed to implement the zero-copy challenge,
+but I found it is hard, and finally chose to implement Make your errors beautiful. At that point, all work
+is down. I would have research on external diagnostic reporting crates to help it complete this.
+
+> 3. No test and documentation. I finished the project line by line and stage by stage. I did some tests and
+documents after every function is done in the early stage, but when I rewrited my work again and again I gave up
+because it is a heavy workload job and are very likely to be useless when I change my design. And with sample 
+tests and error handling stuff, it is enough for me to debug. But If I implement test and documentation the 
+design should be more readable.
 
 ## Other Comments
 

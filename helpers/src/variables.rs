@@ -69,7 +69,7 @@ pub fn get_number(
                 ))),
             },
             //won't happen here
-            _ => Err(LogoError::new(format!("won't happen here"))),
+            _ => Err(LogoError::new("won't happen here".to_string())),
         }
     } else {
         Err(LogoError::new(format!(

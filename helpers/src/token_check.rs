@@ -1,5 +1,4 @@
-#[derive(PartialEq)]
-#[derive(Debug)]
+#[derive(PartialEq, Debug)]
 pub enum Prefix {
     XCOR,
     YCOR,

@@ -459,7 +459,7 @@ pub fn parse(
                 Ok(())
             }
         }
-        Some(&_) => Err(LogoError::new(format!("Wrong input"))),
+        Some(&_) => Err(LogoError::new("Wrong input".to_string())),
         None => {
             *_index += 1;
             Ok(())

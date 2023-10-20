@@ -1,10 +1,13 @@
 extern crate helpers;
 
 use clap::Parser;
-use helpers::{parse::parse, turtle::Turtle};
-use unsvg::Image;
-use std::{fs::read_to_string, collections::{HashMap, VecDeque}};
 use helpers::conditions::*;
+use helpers::{parse::parse, turtle::Turtle};
+use std::{
+    collections::{HashMap, VecDeque},
+    fs::read_to_string,
+};
+use unsvg::Image;
 
 /// A simple program to parse four arguments using clap.
 #[derive(Parser)]
@@ -55,17 +58,25 @@ fn main() -> Result<(), ()> {
     let mut index: usize = 0;
 
     // split it into tokens and go line by line and modify the image.
-    //for line in lines {     
-    while  index < length { 
+    //for line in lines {
+    while index < length {
         let line = lines[index];
-        let logoline = index + 1;
-        println!("{line} line: {logoline}");
         let tokens = line.split_whitespace();
-        let result = parse(tokens, &mut turtle, &mut image, &mut variables, &mut index, &mut conditions);
-        if let Err(_e) = result {
+        let result = parse(
+            tokens,
+            &mut turtle,
+            &mut image,
+            &mut variables,
+            &mut index,
+            &mut conditions,
+        );
+        if let Err(e) = result {
+            eprintln!("{e}");
+            eprintln!("The logo code producing error is:");
+            eprintln!("{line}");
             return Err(());
         }
-    }    
+    }
 
     //after logo program is finished, if still in IF/WHILE bracket, report error
     if !conditions.is_empty() {
