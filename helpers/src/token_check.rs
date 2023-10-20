@@ -22,16 +22,16 @@ pub enum Prefix {
 pub fn prefix_check(token_or_not: Option<&str>) -> (Prefix, &str) {
     if let Some(token) = token_or_not {
         if token == "XCOR" {
-            return (Prefix::XCOR, "");
+            (Prefix::XCOR, "")
         }
         else if token == "YCOR" {
-            return (Prefix::YCOR, "");
+            (Prefix::YCOR, "")
         }
         else if token == "HEADING" {
-            return (Prefix::HEADING, "");
+            (Prefix::HEADING, "")
         }
         else if token == "COLOR" {
-            return (Prefix::COLOR, "");
+            (Prefix::COLOR, "")
         }
         else if token == "EQ"
             || token == "NE"
@@ -49,7 +49,7 @@ pub fn prefix_check(token_or_not: Option<&str>) -> (Prefix, &str) {
         {
             return (Prefix::OperatorValue, token);    
         }
-        else if token.chars().next().unwrap() == '"' {
+        else if token.starts_with('\"') {
             if let Some(rest) = token.get(1..) {
                 if rest.parse::<f32>().is_ok() {
                     return (Prefix::QuotationValue, rest);
@@ -68,7 +68,7 @@ pub fn prefix_check(token_or_not: Option<&str>) -> (Prefix, &str) {
                 return (Prefix::Wrong, "");
             }
         }
-        else if token.chars().next().unwrap() == ':' {
+        else if token.starts_with(':') {
             if let Some(rest) = token.get(1..) {
                 return (Prefix::Colon, rest);
             }
@@ -81,7 +81,7 @@ pub fn prefix_check(token_or_not: Option<&str>) -> (Prefix, &str) {
         }
     }
     else {
-        return (Prefix::Empty, "");
+        (Prefix::Empty, "")
     }
 }
 
@@ -89,31 +89,26 @@ pub fn prefix_check(token_or_not: Option<&str>) -> (Prefix, &str) {
 // (if it is marked with :, the variable can be either a number or bool or not defined)
 pub fn is_number(prefix: &Prefix) -> bool {
     match prefix {
-        &Prefix::XCOR => return true,
-        &Prefix::YCOR => return true,
-        &Prefix::HEADING => return true,
-        &Prefix::COLOR => return true,
-        &Prefix::QuotationValue => return true,
-        &Prefix::QuotationVar => return false,
-        &Prefix::Colon => return true,
-        &Prefix::Empty => return false,
-        &Prefix::Wrong => return false,
-        &Prefix::TRUE => return false,
-        &Prefix::FALSE => return false,
-        &Prefix::OperatorBool => return false,
-        &Prefix::OperatorValue => return true,
+        Prefix::XCOR => true,
+        Prefix::YCOR => true,
+        Prefix::HEADING => true,
+        Prefix::COLOR => true,
+        Prefix::QuotationValue => true,
+        Prefix::QuotationVar => false,
+        Prefix::Colon => true,
+        Prefix::Empty => false,
+        Prefix::Wrong => false,
+        Prefix::TRUE => false,
+        Prefix::FALSE => false,
+        Prefix::OperatorBool => false,
+        Prefix::OperatorValue => true,
     }
 }
 
 pub fn is_bool(prefix: &Prefix) -> bool {
-    if prefix == &Prefix::TRUE || prefix == &Prefix::FALSE {
-        return true;
-    }
-    else {
-        return false;
-    }
+    prefix == &Prefix::TRUE || prefix == &Prefix::FALSE 
 }
 
 pub fn is_number_or_bool(prefix: &Prefix) -> bool {
-    return is_number(prefix) || is_bool(prefix);
+    is_number(prefix) || is_bool(prefix)
 }

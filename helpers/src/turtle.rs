@@ -26,45 +26,45 @@ impl Turtle {
 
     pub fn penup(&mut self) -> Result<(), ()> {
         self.down = false;
-        return Ok(());
+        Ok(())
     }
 
     pub fn pendown(&mut self) -> Result<(), ()> {
         self.down = true;
-        return Ok(());
+         Ok(())
     }
 
     pub fn setx(&mut self, x: f32) -> Result<(), ()> {
         self.x = x;
-        return Ok(());
+        Ok(())
     }
 
     pub fn sety(&mut self, y: f32) -> Result<(), ()> {
         self.y = y;
-        return Ok(());
+        Ok(())
     }
 
     pub fn setpencolor(&mut self, color_code: i32) -> Result<(), ()> {
-        if color_code < 1 || color_code > 15 {
+        if !(1..=15).contains(&color_code) {
             return Err(());
         }
         //return reference of the element to prevent copy
         self.color = &COLORS[color_code as usize];
-        return Ok(())
+        Ok(())
     }
 
     pub fn turn(&mut self, degree: i32) -> Result<(), ()> {
         self.direction += degree;
-        return Ok(());
+        Ok(())
     }
 
     pub fn setheading(&mut self, degree: i32) -> Result<(), ()> {
         self.direction = degree;
-        return Ok(());
+        Ok(())
     }
 
     pub fn forward(&mut self, numpixels: f32, image: &mut Image) -> Result<(), ()> {
-        if self.down == true {
+        if self.down {
             match image.draw_simple_line(self.x, self.y, self.direction, numpixels, *self.color) {
                 Ok((x, y)) => {
                     self.x = x;
@@ -81,11 +81,11 @@ impl Turtle {
             self.x = x;
             self.y = y;
         }
-        return Ok(());
+        Ok(())
     }
 
     pub fn back(&mut self, numpixels: f32, image: &mut Image) -> Result<(), ()> {
-        if self.down == true {
+        if self.down {
             match image.draw_simple_line(self.x, self.y, self.direction + 180, numpixels, *self.color) {
                 Ok((x, y)) => {
                     self.x = x;
@@ -102,11 +102,11 @@ impl Turtle {
             self.x = x;
             self.y = y;
         }
-        return Ok(());
+        Ok(())
     }
 
     pub fn left(&mut self, numpixels: f32, image: &mut Image) -> Result<(), ()> {
-        if self.down == true {
+        if self.down {
             match image.draw_simple_line(self.x, self.y, self.direction + 270, numpixels, *self.color) {
                 Ok((x, y)) => {
                     self.x = x;
@@ -123,11 +123,11 @@ impl Turtle {
             self.x = x;
             self.y = y;
         }
-        return Ok(());
+        Ok(())
     }
 
     pub fn right(&mut self, numpixels: f32, image: &mut Image) -> Result<(), ()> {
-        if self.down == true {
+        if self.down {
             match image.draw_simple_line(self.x, self.y, self.direction + 90, numpixels, *self.color){
                 Ok((x, y)) => {
                     self.x = x;
@@ -144,6 +144,6 @@ impl Turtle {
             self.x = x;
             self.y = y;
         }
-        return Ok(());
+        Ok(())
     }
 }

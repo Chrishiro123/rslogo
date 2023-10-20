@@ -19,13 +19,13 @@ pub fn parse(mut tokens: std::str::SplitWhitespace,
     // and dothing if not in any condition (empty conditions)
     if let Some(condition) = conditions.back() {
         // if condition is false, skip this line
-        if condition.result == false 
+        if !condition.result 
             && first != Some("]")
             && first != Some("IF")
             && first != Some("WHILE")
             {
             *_index += 1;
-            return Ok(())
+            return Ok(());
         }
     }
 
@@ -33,27 +33,27 @@ pub fn parse(mut tokens: std::str::SplitWhitespace,
     match first {
         Some("//") => {
             *_index += 1;
-            return Ok(())
+            Ok(())
         },
 
         Some("PENUP") => {
             *_index += 1;
             //check no extra parameter
-            if !tokens.next().is_none() {
+            if tokens.next().is_some() {
                 eprintln!("Too many parameters in PENUP in index: {_index}!");
                 return Err(());                        
             }
-            return turtle.penup()
+            turtle.penup()
         },
 
         Some("PENDOWN") => {
             *_index += 1;
             //check no extra parameter
-            if !tokens.next().is_none() {
+            if tokens.next().is_some() {
                 eprintln!("Too many parameters in PENDOWN in line: {_index}!");
                 return Err(());                        
             }
-            return turtle.pendown()
+            turtle.pendown()
         },
 
         Some("FORWARD") => {
@@ -62,11 +62,11 @@ pub fn parse(mut tokens: std::str::SplitWhitespace,
             let (prefix, rest) = prefix_check(tokens.next());
             //check no extra parameter exists
             let numpixels = get_number(&prefix, rest, turtle, variables, _index, &mut tokens)?;
-            if !tokens.next().is_none() {
+            if tokens.next().is_some() {
                 eprintln!("Too many parameters in FORWARD in line: {_index}!");
                 return Err(());                        
             }
-            return turtle.forward(numpixels, image);
+            turtle.forward(numpixels, image)
         },
 
         Some("BACK") => {
@@ -75,11 +75,11 @@ pub fn parse(mut tokens: std::str::SplitWhitespace,
             let (prefix, rest) = prefix_check(tokens.next());
             let numpixdels = get_number(&prefix, rest, turtle, variables, _index, &mut tokens)?;
             //check no extra parameter exists
-            if !tokens.next().is_none() {
+            if tokens.next().is_some() {
                 eprintln!("Too many parameters in BACK in line: {_index}!");
                 return Err(());                        
             }
-            return turtle.back(numpixdels, image);
+            turtle.back(numpixdels, image)
         },
 
         Some("LEFT") => {
@@ -88,23 +88,23 @@ pub fn parse(mut tokens: std::str::SplitWhitespace,
             let (prefix, rest) = prefix_check(tokens.next());
             let numpixels = get_number(&prefix, rest, turtle, variables, _index, &mut tokens)?;
             //check no extra parameter exists
-            if !tokens.next().is_none() {
+            if tokens.next().is_some() {
                 eprintln!("Too many parameters in LEFT in line: {_index}!");
                 return Err(());                        
             }
-            return turtle.left(numpixels, image);
+            turtle.left(numpixels, image)
         },
         Some("RIGHT") => {
             *_index += 1;
             //get the first parameter
             let (prefix, rest) = prefix_check(tokens.next());
-            let numpixdels = get_number(&prefix, rest, turtle, variables, &_index, &mut tokens)?;
+            let numpixdels = get_number(&prefix, rest, turtle, variables, _index, &mut tokens)?;
             //check no extra parameter exists
-            if !tokens.next().is_none() {
+            if tokens.next().is_some() {
                 eprintln!("Too many parameters in RIGHT in line: {_index}!");
                 return Err(());                        
             }
-            return turtle.right(numpixdels, image);
+            turtle.right(numpixdels, image)
         },
 
         Some("SETPENCOLOR") => {
@@ -115,11 +115,11 @@ pub fn parse(mut tokens: std::str::SplitWhitespace,
             //check the input is a integer
             let value_int = get_int(value, _index)?;
             //check no extra parameter exists
-            if !tokens.next().is_none() {
+            if tokens.next().is_some() {
                 eprintln!("Too many parameters in SETPENCOLOR in line {_index}!");
                 return Err(());                        
             }
-                return turtle.setpencolor(value_int);
+                turtle.setpencolor(value_int)
         },
 
         Some("TURN") => {
@@ -130,11 +130,11 @@ pub fn parse(mut tokens: std::str::SplitWhitespace,
             //check the input is a integer
             let value_int = get_int(value, _index)?;
             //check no extra parameter exists
-            if !tokens.next().is_none() {
+            if tokens.next().is_some() {
                 eprintln!("Too many parameters in TURN in line: {_index}");
                 return Err(());                        
             }
-            return turtle.turn(value_int);
+            turtle.turn(value_int)
         },
 
         Some("SETHEADING") => {
@@ -144,11 +144,11 @@ pub fn parse(mut tokens: std::str::SplitWhitespace,
             let value = get_number(&prefix, rest, turtle, variables, _index, &mut tokens)?;
             let value_int = get_int(value, _index)?;
             //check no extra parameter exists
-            if !tokens.next().is_none() {
+            if tokens.next().is_some() {
                 eprintln!("Too many parameters in SETHEADING in line: {_index}!");
                 return Err(());                        
             }
-            return turtle.setheading(value_int);
+            turtle.setheading(value_int)
         }
 
         Some("SETX") => {
@@ -157,11 +157,11 @@ pub fn parse(mut tokens: std::str::SplitWhitespace,
             let (prefix, rest) = prefix_check(tokens.next());
             let value = get_number(&prefix, rest, turtle, variables, _index, &mut tokens)?;
             //check no extra parameter exists
-            if !tokens.next().is_none() {
+            if tokens.next().is_some() {
                 eprintln!("Too many parameters in SETX in line: {_index}!");
                 return Err(());                        
             }
-            return turtle.setx(value);
+            turtle.setx(value)
         },
 
         Some("SETY") => {
@@ -170,11 +170,11 @@ pub fn parse(mut tokens: std::str::SplitWhitespace,
             let (prefix, rest) = prefix_check(tokens.next());
             let value = get_number(&prefix, rest, turtle, variables, _index, &mut tokens)?;
             //check no extra parameter exists
-            if !tokens.next().is_none() {
+            if tokens.next().is_some() {
                 eprintln!("Too many parameters in SETY in line: {_index}!");
                 return Err(());                        
             }
-            return turtle.sety(value);
+            turtle.sety(value)
         },
 
         Some("MAKE") => {
@@ -184,18 +184,18 @@ pub fn parse(mut tokens: std::str::SplitWhitespace,
             //check grammer
             if prefix != Prefix::QuotationVar {
                 eprintln!("in line: {_index}, MAKE requires a variable as parameter!");
-                return Err(());
+                Err(())
             }
             else {
                 //get the second parameter
                 let (prefix, value_str) = prefix_check(tokens.next());
                 let value = get_number_or_bool(&prefix, value_str, turtle, variables, _index, &mut tokens)?;
-                if !tokens.next().is_none() {
+                if tokens.next().is_some() {
                     eprintln!("Too many parameters in MAKE in line: {_index}!");
                     return Err(());                        
                 }
                 make(variables, variable_name, value);
-                return Ok(());
+                Ok(())
             }
         },
         Some("ADDASSIGN") => {
@@ -205,44 +205,43 @@ pub fn parse(mut tokens: std::str::SplitWhitespace,
             //check grammer
             if prefix != Prefix::QuotationVar {
                 eprintln!("in line: {_index}, ADDASSIGN requires a variable as parameter!");
-                return Err(());
+                Err(())
             }
             else {
                 //get the second parameter
                 let (prefix, rest2) = prefix_check(tokens.next());
                 let value = get_number(&prefix, rest2, turtle, variables, _index, &mut tokens)?;
-                if !tokens.next().is_none() {
+                if tokens.next().is_some() {
                     eprintln!("Too many parameters in ADDASSIGN in line: {_index}!");
                     return Err(());                        
                 }
-                return addassign(variables, rest1, value);
+                addassign(variables, rest1, value)
             }
         },
 
         Some("IF") => {
             // check if it is in another IF/WHILE bracket
             if let Some(value) = conditions.back() {
-                if value.result == false {
+                if !value.result {
                     // if is in another false bracket, do not execute, but just add a new false condition in (to match its ])
                     // if is in a true bracket, execute as normal
-                    conditions.push_back(Condition::new(ConditionType::IF, _index.clone(), false));
+                    conditions.push_back(Condition::new(ConditionType::IF, *_index, false));
                     *_index += 1;
                     return Ok(());
                 }
             }
 
-            //get next key word
+            //get operator
             let res = tokens.next();
             let next_line = *_index + 1;
             let first_operator = get_operator(res, &next_line)?;
-            let first_operator_str: &str;
-            match res {
-                Some(value) => first_operator_str = value,
+            let first_operator_str = match res {
+                Some(value) => value,
                 None => {
                     eprintln!("in line {next_line}, no parameter exist after IF");
                     return Err(());
                 }
-            }
+            };
 
             //get the first parameter of IF
             let (prefix, rest) = prefix_check(tokens.next());
@@ -253,43 +252,43 @@ pub fn parse(mut tokens: std::str::SplitWhitespace,
             let value2 = get_number_or_bool(&prefix, rest, turtle, variables, &next_line, &mut tokens)?;
 
             // start calculation
-            let res: f32;
-            if !is_return_bool(&first_operator) {
+            let res = if !is_return_bool(&first_operator) {
                 eprintln!("In line {next_line}, The result of operator: {first_operator_str} of IF condition is not a bool!");
                 return Err(());
             }
             else {
-                res = calculation(&first_operator, value1, value2, &next_line)?;
-            }
+                calculation(&first_operator, value1, value2, &next_line)?
+            };
 
             // push the result into condition vector
             if res == TRUE {
-                conditions.push_back(Condition::new(ConditionType::IF, _index.clone(), true));
+                conditions.push_back(Condition::new(ConditionType::IF, *_index, true));
             }
             else {
-                conditions.push_back(Condition::new(ConditionType::IF, _index.clone(), false));
+                conditions.push_back(Condition::new(ConditionType::IF, *_index, false));
             }
 
             // check [ exist
             if let Some(value) = tokens.next() {
-                if value == "[" {
-                    ();
-                }
-                else {
-                    eprintln!("missing [ in IF condition!");
+                if value != "[" {
+                    eprintln!("extra parameter in IF condition in line {next_line}!");
                     return Err(());
                 }
             }
+            else {
+                eprintln!("missing [ in IF condition in line {next_line}!");
+                return Err(());
+            }
             *_index += 1;
-            return Ok(());
+            Ok(())
         },
         Some("WHILE") => {
             // check if it is in another IF/WHILE bracket
             if let Some(value) = conditions.back() {
-                if value.result == false {
+                if !value.result {
                     // if is in another false bracket, do not execute, but just add a new false condition in (to match its ])
                     // if is in a true bracket, execute as normal
-                    conditions.push_back(Condition::new(ConditionType::WHILE, _index.clone(), false));
+                    conditions.push_back(Condition::new(ConditionType::WHILE, *_index, false));
                     *_index += 1;
                     return Ok(());
                 }
@@ -299,14 +298,13 @@ pub fn parse(mut tokens: std::str::SplitWhitespace,
             let res = tokens.next();
             let next_line = *_index + 1;
             let first_operator = get_operator(res, &next_line)?;
-            let first_operator_str: &str;
-            match res {
-                Some(value) => first_operator_str = value,
+            let first_operator_str = match res {
+                Some(value) => value,
                 None => {
                     eprintln!("in line {next_line}, no parameter exist after WHILE");
                     return Err(());
                 }
-            }
+            };
 
             //get the first parameter of WHILE
             let (prefix, rest) = prefix_check(tokens.next());
@@ -331,14 +329,13 @@ pub fn parse(mut tokens: std::str::SplitWhitespace,
             }
 
             // start calculation
-            let while_result: f32;
-            if !is_return_bool(&first_operator) {
+            let while_result = if !is_return_bool(&first_operator) {
                 eprintln!("In line {next_line}, The result of operator: {first_operator_str} of WHILE condition is not a bool!");
                 return Err(());
             }
             else {
-                while_result = calculation(&first_operator, value1, value2, &next_line)?;
-            }
+                calculation(&first_operator, value1, value2, &next_line)?
+            };
 
             if repeat {
                 if while_result == FALSE {
@@ -346,65 +343,60 @@ pub fn parse(mut tokens: std::str::SplitWhitespace,
                     last_condition.turn_off();
                 }
             }
+            else if while_result == FALSE {
+                conditions.push_back(Condition::new(ConditionType::WHILE, *_index, false));
+            }
             else {
-                if while_result == FALSE {
-                    conditions.push_back(Condition::new(ConditionType::WHILE, _index.clone(), false));
-                }
-                else {
-                    conditions.push_back(Condition::new(ConditionType::WHILE, _index.clone(), true));
-                }
+                conditions.push_back(Condition::new(ConditionType::WHILE, *_index, true));
             }
 
             // check [ exist
             if let Some(value) = tokens.next() {
-                if value == "[" {
-                    ();
-                }
-                else {
-                    eprintln!("missing [ in WHILE condition!");
+                if value != "[" {
+                    eprintln!("extra parameter in WHILE condition in line {next_line}!");
                     return Err(());
                 }
             }
+            else {
+                eprintln!("missing ] in WHILE condition in line {next_line}");
+            }
             *_index += 1;
-            return Ok(());
+            Ok(())
         },
         Some("]") => {
-            let condition: &Condition;
-            match conditions.back() {
+            let condition = match conditions.back() {
                 //get the condition information
                 Some(condi) => {
-                    condition = condi;
+                    condi
                 },
                 // if not in any conditions but find ], report error
                 None => {
                     eprintln!("found ] without matching [!");
                     return Err(());
                 },
-            }
+            };
             // if is in if condition, drop out the condition and continue next line
             if condition.condition_type == ConditionType::IF {
                 conditions.pop_back();
                 *_index += 1;
-                return Ok(());
+                Ok(())
             }
             // if is in while condition, if the result is already false, pop out condition and continue
             // if the result is true, go back to the while check line again
+            else if condition.result {
+                *_index = condition.index;
+                Ok(())
+                }
             else {
-                if condition.result == true {
-                    *_index = condition.index;
-                    return Ok(());
-                }
-                else {
-                    conditions.pop_back();
-                    *_index += 1;
-                    return Ok(());
-                }
+                conditions.pop_back();
+                *_index += 1;
+                Ok(())
             }
         }
-        Some(&_) => return Err(()),
+        Some(&_) => Err(()),
         None  => {
             *_index += 1;
-            return Ok(());
+            Ok(())
         },
     }
 

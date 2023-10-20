@@ -14,16 +14,16 @@ pub fn make(variables: &mut HashMap<String, f32>, variable: &str, value: f32) {
     variables.insert(variable.to_string(), value);
 }
 
-pub fn addassign<'a>(variables: &mut HashMap<String, f32>, variable: &str, value: f32) -> Result<(), ()> {
+pub fn addassign(variables: &mut HashMap<String, f32>, variable: &str, value: f32) -> Result<(), ()> {
     let pre = variables.get(variable);
     match pre {
         Some(pre) => {
             variables.insert(variable.to_string(), value + pre).unwrap();
-            return Ok(());
+            Ok(())
         },
         None => {
             eprintln!("Trying to ADDASSIGN a non-existing variable!");
-            return Err(());
+            Err(())
         }
     }
 }
@@ -38,65 +38,65 @@ pub fn get_number(prefix: &Prefix,
     //logo code start from line 1, while index start from 0, so next line is actually the current line in logo code
     if is_number(prefix) {
         match prefix {
-            &Prefix::XCOR => Ok(turtle.x),
-            &Prefix::YCOR => Ok(turtle.y),
-            &Prefix::HEADING => Ok(turtle.direction as f32),
-            &Prefix::COLOR => Ok(get_color(turtle.color)),
-            &Prefix::QuotationValue => Ok(rest.parse::<f32>().unwrap()),
-            &Prefix::OperatorValue => return math_calculation(tokens, rest, next_line, turtle, variables),
-            &Prefix::Colon => {
+            Prefix::XCOR => Ok(turtle.x),
+            Prefix::YCOR => Ok(turtle.y),
+            Prefix::HEADING => Ok(turtle.direction as f32),
+            Prefix::COLOR => Ok(get_color(turtle.color)),
+            Prefix::QuotationValue => Ok(rest.parse::<f32>().unwrap()),
+            Prefix::OperatorValue => math_calculation(tokens, rest, next_line, turtle, variables),
+            Prefix::Colon => {
                 match variables.get(rest) {
                     Some(value) => {
                         if value == &TRUE || value == &FALSE {
                             eprintln!("in line {next_line}, variable: {rest}, is a bool but requires a number!");
                             return Err(());
                         }
-                        return Ok(*value)
+                        Ok(*value)
                     },
                     None => {
                         eprintln!("in line {next_line}, trying to retrieve a non-existing variable: {rest}!");
-                        return Err(());
+                        Err(())
                     },
                 }
             },
             //won't happen here
-            _ => return Err(()),
+            _ => Err(()),
         }
     }
     else {
         eprintln!("In line {next_line}, trying to get a number but receving a non-number: {rest}!");
-        return Err(());
+        Err(())
     }
 }
 
 pub fn get_bool(prefix: &Prefix, next_line: &usize) -> Result<f32, ()> {
     if is_bool(prefix) {
         if prefix == &Prefix::TRUE {
-            return Ok(TRUE);
+            Ok(TRUE)
         }
         else if prefix == &Prefix::FALSE{
-            return Ok(FALSE);
+            Ok(FALSE)
         }
         else {
             eprintln!("Error occured in get_bool in line: {next_line}");
-            return Err(());
+            Err(())
             }
     }
     else {
         eprintln!("Trying to get a bool in line {next_line}, but getting a non-bool");
-        return Err(());
+        Err(())
     }
 }
 
 pub fn get_color(color: &Color) -> f32 {
-    for i in 0..=15 {
-        if color ==  &COLORS[i] {
+    for (i, array_color) in COLORS.iter().enumerate() {
+        if color == array_color {
             return i as f32;
         }
     }
     
     eprintln!("error in get_color!, color: {color:?}");
-    return 0.0;
+    0.0
 }
 
 pub fn get_int(float: f32, next_line: &usize) -> Result<i32, ()> {
@@ -104,7 +104,7 @@ pub fn get_int(float: f32, next_line: &usize) -> Result<i32, ()> {
         eprintln!("in line: {next_line}, a parameter requires a integer with: {float}, but received a non-integer!");
         return Err(());
     }
-    return Ok(float as i32);
+    Ok(float as i32)
 }
 
 pub fn get_number_or_bool(prefix: &Prefix, 
@@ -139,7 +139,7 @@ pub fn get_number_or_bool(prefix: &Prefix,
     // check if it is a operator returning bool
     if prefix == &Prefix::OperatorBool {
         let value = math_calculation(tokens, rest, next_line, turtle, variables)?;
-        return Ok(value);
+        Ok(value)
     }
     // check if it is a number value or variable
     else if is_number(prefix) {

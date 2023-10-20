@@ -20,34 +20,22 @@ pub enum Operator {
 // check if the operator return type is a bool
 pub fn is_return_bool(operator: &Operator) -> bool {
     match operator {
-        &Operator::EQ => true,
-        &Operator::NE => true,
-        &Operator::GT => true,
-        &Operator::LT => true,
-        &Operator::AND => true,
-        &Operator::OR => true,
-        &Operator::ADD => false,
-        &Operator::SUB => false,
-        &Operator::MUL => false,
-        &Operator::DIV => false,
+        Operator::EQ => true,
+        Operator::NE => true,
+        Operator::GT => true,
+        Operator::LT => true,
+        Operator::AND => true,
+        Operator::OR => true,
+        Operator::ADD => false,
+        Operator::SUB => false,
+        Operator::MUL => false,
+        Operator::DIV => false,
     }
 }
 
 //  check the token is a operator
 pub fn is_operator(token: &str) -> bool {
-    match token {
-        "EQ" => true,
-        "NE" => true,
-        "GT" => true,
-        "LT" => true,
-        "AND" => true,
-        "OR" => true,
-        "+" => true,
-        "-" => true,
-        "*" => true,
-        "/" => true,
-        _ => false,
-    }
+    matches!(token, "EQ" | "NE" | "GT" | "LT" | "AND" | "OR" | "+" | "-" | "*" | "/")
 }
 
 // given the Option<&str> (not sure if there is a token)
@@ -69,13 +57,13 @@ pub fn get_operator(token: Option<&str>, next_line: &usize) -> Result<Operator, 
                 "/" => Ok(Operator::DIV),
                 _ => {
                     eprintln!("Get: {keyword}, in line: {next_line} when getting operator!");
-                    return Err(());
+                    Err(())
                 },
             }
         },
         None => {
             eprintln!("in line {next_line}, trying to get a operator but found nothing!");
-            return Err(());
+            Err(())
         },
     }
 }
@@ -117,24 +105,22 @@ pub fn math_calculation(tokens: &mut std::str::SplitWhitespace,
         // calculate when operator found
         if is_operator(token) {
             let operator = get_operator(Some(token), next_line)?;
-            let operand1: f32;
-            let operand2: f32;
             // get operand1
-            match stack.pop_back() {
-                Some(value1) => operand1 = value1,
+            let operand1 = match stack.pop_back() {
+                Some(value1) => value1,
                 None => {
                     eprintln!("In line {next_line}, a math operator do not have enough operands");
                     return Err(());
                 },
-            }
+            };
             // get operand2
-            match stack.pop_back() {
-                Some(value2) => operand2 = value2,
+            let operand2 = match stack.pop_back() {
+                Some(value2) => value2,
                 None => {
                     eprintln!("In line {next_line}, a math operator do not have enough operands");
                     return Err(());
                 },
-            }
+            };
             // do calculation
             let res = calculation(&operator, operand1, operand2, next_line)?;
             stack.push_back(res);
@@ -155,12 +141,12 @@ pub fn math_calculation(tokens: &mut std::str::SplitWhitespace,
                 eprintln!("in line {next_line}, stack have more than one result, which means too much operands!");
                 return Err(());
             }
-            return Ok(final_value);
+            Ok(final_value)
         },
         None => {
             // should not happen
             eprintln!("in line {next_line}, the calculation return no result!");
-            return Err(());
+            Err(())
         },
     }
 } 
@@ -168,99 +154,99 @@ pub fn math_calculation(tokens: &mut std::str::SplitWhitespace,
 // a helper function doing calculation and also operands type check
 pub fn calculation(operator: &Operator, operand1: f32, operand2: f32, next_line: &usize) -> Result<f32, ()> {
     match operator {
-        &Operator::EQ => {
+        Operator::EQ => {
             if operand1 == operand2 {
-                return Ok(TRUE);
+                Ok(TRUE)
             }
             else {
-                return Ok(FALSE);
+                Ok(FALSE)
             }
         },
-        &Operator::NE => {
+        Operator::NE => {
             if operand1 != operand2 {
-                return Ok(TRUE);
+                Ok(TRUE)
         }
             else {
-                return Ok(FALSE);
+                Ok(FALSE)
             }
         },
-        &Operator::GT => {
+        Operator::GT => {
             if operand1 > operand2 {
-                return Ok(TRUE);
+                Ok(TRUE)
             }
             else {
-                return Ok(FALSE);
+                Ok(FALSE)
             }
         },
-        &Operator::LT => {
+        Operator::LT => {
             if operand1 < operand2 {
-                return Ok(TRUE);
+                Ok(TRUE)
             }
             else {
-                return Ok(FALSE);
+                Ok(FALSE)
             }
         },
-        &Operator::AND => {
+        Operator::AND => {
             if !is_bool_f32(operand1) || !is_bool_f32(operand2) {
                 eprintln!("In {next_line}, AND operator get a non-bool operand!");
                 return Err(());
             }
             if operand1 == TRUE && operand2 == TRUE {
-                return Ok(TRUE);
+                Ok(TRUE)
             }
             else {
-                return Ok(FALSE);
+                Ok(FALSE)
             }
         },
-        &Operator::OR => {
+        Operator::OR => {
             if !is_bool_f32(operand1) || !is_bool_f32(operand2) {
                 eprintln!("In {next_line}, AND operator get a non-bool operand!");
                 return Err(());
             }
             if operand1 == TRUE || operand2 == TRUE {
-                return Ok(TRUE);
+                Ok(TRUE)
             }
             else {
-                return Ok(FALSE);
+                Ok(FALSE)
             }
         },
-        &Operator::ADD => {
+        Operator::ADD => {
             if is_bool_f32(operand1) || is_bool_f32(operand2) {
                 eprintln!("In {next_line}, ADD operator get a bool operand!");
-                return Err(());
+                Err(())
             }
             else {
-                return Ok(operand1 + operand2);
+                Ok(operand1 + operand2)
             }
         },
-        &Operator::SUB => {
+        Operator::SUB => {
             if is_bool_f32(operand1) || is_bool_f32(operand2) {
                 eprintln!("In {next_line}, ADD operator get a bool operand!");
-                return Err(());
+                Err(())
             }
             else {
-                return Ok(operand1 - operand2);
+                Ok(operand1 - operand2)
             }
         },
-        &Operator::MUL => {
+        Operator::MUL => {
             if is_bool_f32(operand1) || is_bool_f32(operand2) {
                 eprintln!("In {next_line}, ADD operator get a bool operand!");
-                return Err(());
+                Err(())
             }
             else {
-                return Ok(operand1 * operand2);
+                Ok(operand1 * operand2)
             }
         },
-        &Operator::DIV => {
+        Operator::DIV => {
             if is_bool_f32(operand1) || is_bool_f32(operand2) {
                 eprintln!("In line {next_line}, ADD operator get a bool operand!");
-                return Err(());
+                Err(())
             }
             else {
                 if operand2 == 0.0 {
                     eprintln!("In line {next_line}, trying to divide by 0!")
                 }
-                return Ok(operand1 / operand2);
+                Ok(operand1 / operand2)
             }
         },
     }
@@ -268,10 +254,5 @@ pub fn calculation(operator: &Operator, operand1: f32, operand2: f32, next_line:
 
 // check if a f32 is the specified true/false f32 value
 pub fn is_bool_f32(operand: f32) -> bool {
-    if operand == TRUE || operand == FALSE {
-        return true;
-    }
-    else {
-        return false;
-    }
+    operand == TRUE || operand == FALSE
 }
