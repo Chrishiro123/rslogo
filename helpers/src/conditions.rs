@@ -13,7 +13,11 @@ pub struct Condition {
 
 impl Condition {
     pub fn new(condition_type: ConditionType, index: usize, result: bool) -> Self {
-        Self { condition_type, index, result}
+        Self {
+            condition_type,
+            index,
+            result,
+        }
     }
 
     pub fn turn_off(&mut self) {

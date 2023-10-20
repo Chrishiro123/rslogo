@@ -1,8 +1,9 @@
-use unsvg::Image;
-use unsvg::Color;
-use unsvg::COLORS;
-use unsvg::get_end_coordinates;
 use crate::err_handling::LogoError;
+use colored::Colorize;
+use unsvg::get_end_coordinates;
+use unsvg::Color;
+use unsvg::Image;
+use unsvg::COLORS;
 
 pub struct Turtle {
     pub x: f32,
@@ -16,13 +17,12 @@ pub struct Turtle {
 impl Turtle {
     pub fn new(width: u32, height: u32) -> Self {
         Self {
-            x : (width / 2) as f32,
-            y : (height / 2) as f32,
-            down : false,
+            x: (width / 2) as f32,
+            y: (height / 2) as f32,
+            down: false,
             direction: 0,
-            color : &COLORS[7],
+            color: &COLORS[7],
         }
-
     }
 
     pub fn penup(&mut self) -> Result<(), LogoError> {
@@ -32,7 +32,7 @@ impl Turtle {
 
     pub fn pendown(&mut self) -> Result<(), LogoError> {
         self.down = true;
-         Ok(())
+        Ok(())
     }
 
     pub fn setx(&mut self, x: f32) -> Result<(), LogoError> {
@@ -47,7 +47,11 @@ impl Turtle {
 
     pub fn setpencolor(&mut self, color_code: i32) -> Result<(), LogoError> {
         if !(1..=15).contains(&color_code) {
-            return Err(LogoError);
+            return Err(LogoError::new(format!(
+                "{} need integer between {}!",
+                "setpencolor".blue(),
+                "[1, 15]".blue()
+            )));
         }
         //return reference of the element to prevent copy
         self.color = &COLORS[color_code as usize];
@@ -64,7 +68,12 @@ impl Turtle {
         Ok(())
     }
 
-    pub fn forward(&mut self, numpixels: f32, image: &mut Image) -> Result<(), LogoError> {
+    pub fn forward(
+        &mut self,
+        numpixels: f32,
+        image: &mut Image,
+        next_line: &usize,
+    ) -> Result<(), LogoError> {
         if self.down {
             match image.draw_simple_line(self.x, self.y, self.direction, numpixels, *self.color) {
                 Ok((x, y)) => {
@@ -72,12 +81,14 @@ impl Turtle {
                     self.y = y;
                 }
                 Err(e) => {
-                    eprintln!("error occured in forward function: {e:?}");
-                    return Err(LogoError);
+                    return Err(LogoError::new(format!(
+                        "in line {}, error occured in {} function: {e}",
+                        next_line.to_string().yellow(),
+                        "forward".yellow()
+                    )));
                 }
             }
-        }
-        else {
+        } else {
             let (x, y) = get_end_coordinates(self.x, self.y, self.direction, numpixels);
             self.x = x;
             self.y = y;
@@ -85,20 +96,33 @@ impl Turtle {
         Ok(())
     }
 
-    pub fn back(&mut self, numpixels: f32, image: &mut Image) -> Result<(), LogoError> {
+    pub fn back(
+        &mut self,
+        numpixels: f32,
+        image: &mut Image,
+        next_line: &usize,
+    ) -> Result<(), LogoError> {
         if self.down {
-            match image.draw_simple_line(self.x, self.y, self.direction + 180, numpixels, *self.color) {
+            match image.draw_simple_line(
+                self.x,
+                self.y,
+                self.direction + 180,
+                numpixels,
+                *self.color,
+            ) {
                 Ok((x, y)) => {
                     self.x = x;
                     self.y = y;
                 }
                 Err(e) => {
-                    eprintln!("error occured in back function: {e:?}");
-                    return Err(LogoError);
+                    return Err(LogoError::new(format!(
+                        "in line {}, error occured in {} function: {e:?}",
+                        next_line.to_string().yellow(),
+                        "BACK".blue()
+                    )));
                 }
             }
-        }
-        else {
+        } else {
             let (x, y) = get_end_coordinates(self.x, self.y, self.direction + 180, numpixels);
             self.x = x;
             self.y = y;
@@ -106,20 +130,33 @@ impl Turtle {
         Ok(())
     }
 
-    pub fn left(&mut self, numpixels: f32, image: &mut Image) -> Result<(), LogoError> {
+    pub fn left(
+        &mut self,
+        numpixels: f32,
+        image: &mut Image,
+        next_line: &usize,
+    ) -> Result<(), LogoError> {
         if self.down {
-            match image.draw_simple_line(self.x, self.y, self.direction + 270, numpixels, *self.color) {
+            match image.draw_simple_line(
+                self.x,
+                self.y,
+                self.direction + 270,
+                numpixels,
+                *self.color,
+            ) {
                 Ok((x, y)) => {
                     self.x = x;
                     self.y = y;
                 }
                 Err(e) => {
-                    eprintln!("error occured in left function: {e:?}");
-                    return Err(LogoError);
+                    return Err(LogoError::new(format!(
+                        "in line {}, error occured in {} function: {e:?}",
+                        next_line.to_string().yellow(),
+                        "left".blue()
+                    )));
                 }
             }
-        }
-        else {
+        } else {
             let (x, y) = get_end_coordinates(self.x, self.y, self.direction + 270, numpixels);
             self.x = x;
             self.y = y;
@@ -127,20 +164,34 @@ impl Turtle {
         Ok(())
     }
 
-    pub fn right(&mut self, numpixels: f32, image: &mut Image) -> Result<(), LogoError> {
+    pub fn right(
+        &mut self,
+        numpixels: f32,
+        image: &mut Image,
+        next_line: &usize,
+    ) -> Result<(), LogoError> {
         if self.down {
-            match image.draw_simple_line(self.x, self.y, self.direction + 90, numpixels, *self.color){
+            match image.draw_simple_line(
+                self.x,
+                self.y,
+                self.direction + 90,
+                numpixels,
+                *self.color,
+            ) {
                 Ok((x, y)) => {
                     self.x = x;
                     self.y = y;
                 }
                 Err(e) => {
-                    eprintln!("error occured in right function: {e:?}");
-                    return Err(LogoError);
+                    eprintln!();
+                    return Err(LogoError::new(format!(
+                        "in line {}, error occured in {} function: {e:?}",
+                        next_line.to_string().yellow(),
+                        "right".blue()
+                    )));
                 }
             }
-        }
-        else {
+        } else {
             let (x, y) = get_end_coordinates(self.x, self.y, self.direction + 90, numpixels);
             self.x = x;
             self.y = y;

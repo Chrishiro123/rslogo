@@ -1,8 +1,9 @@
-use std::collections::{VecDeque, HashMap};
+use crate::err_handling::LogoError;
 use crate::token_check::*;
 use crate::turtle::Turtle;
 use crate::variables::*;
-use crate::err_handling::LogoError;
+use colored::Colorize;
+use std::collections::{HashMap, VecDeque};
 
 #[derive(Debug)]
 pub enum Operator {
@@ -36,7 +37,10 @@ pub fn is_return_bool(operator: &Operator) -> bool {
 
 //  check the token is a operator
 pub fn is_operator(token: &str) -> bool {
-    matches!(token, "EQ" | "NE" | "GT" | "LT" | "AND" | "OR" | "+" | "-" | "*" | "/")
+    matches!(
+        token,
+        "EQ" | "NE" | "GT" | "LT" | "AND" | "OR" | "+" | "-" | "*" | "/"
+    )
 }
 
 // given the Option<&str> (not sure if there is a token)
@@ -44,38 +48,37 @@ pub fn is_operator(token: &str) -> bool {
 // report error if no token inside or it is not a operator
 pub fn get_operator(token: Option<&str>, next_line: &usize) -> Result<Operator, LogoError> {
     match token {
-        Some(keyword) => {
-            match keyword {
-                "EQ" => Ok(Operator::EQ),
-                "NE" => Ok(Operator::NE),
-                "GT" => Ok(Operator::GT),
-                "LT" => Ok(Operator::LT),
-                "AND" => Ok(Operator::AND),
-                "OR" => Ok(Operator::OR),
-                "+" => Ok(Operator::ADD),
-                "-" => Ok(Operator::SUB),
-                "*" => Ok(Operator::MUL),
-                "/" => Ok(Operator::DIV),
-                _ => {
-                    eprintln!("Get: {keyword}, in line: {next_line} when getting operator!");
-                    Err(LogoError)
-                },
-            }
+        Some(keyword) => match keyword {
+            "EQ" => Ok(Operator::EQ),
+            "NE" => Ok(Operator::NE),
+            "GT" => Ok(Operator::GT),
+            "LT" => Ok(Operator::LT),
+            "AND" => Ok(Operator::AND),
+            "OR" => Ok(Operator::OR),
+            "+" => Ok(Operator::ADD),
+            "-" => Ok(Operator::SUB),
+            "*" => Ok(Operator::MUL),
+            "/" => Ok(Operator::DIV),
+            _ => Err(LogoError::new(format!(
+                "Get: {}, in line: {} when getting operator!",
+                keyword.red(),
+                next_line.to_string().yellow()
+            ))),
         },
-        None => {
-            eprintln!("in line {next_line}, trying to get a operator but found nothing!");
-            Err(LogoError)
-        },
+        None => Err(LogoError::new(format!(
+            "in line {}, trying to get a operator but found nothing!",
+            next_line.to_string().yellow()
+        ))),
     }
 }
 
-pub fn math_calculation(tokens: &mut std::str::SplitWhitespace, 
-    first_operator: &str, 
-    next_line: &usize, 
-    turtle: &Turtle, 
-    variables: &HashMap<String, f32>
+pub fn math_calculation(
+    tokens: &mut std::str::SplitWhitespace,
+    first_operator: &str,
+    next_line: &usize,
+    turtle: &Turtle,
+    variables: &HashMap<String, f32>,
 ) -> Result<f32, LogoError> {
-
     // vecdeque for storing tokens
     let mut vec_deque = VecDeque::new();
     vec_deque.push_back(first_operator);
@@ -89,12 +92,13 @@ pub fn math_calculation(tokens: &mut std::str::SplitWhitespace,
                 }
                 to_push -= 1;
                 vec_deque.push_back(token);
-
-            },
+            }
             None => {
-                eprintln!("In line {next_line}, a math operator do not have enough operands");
-                return Err(LogoError);
-            },
+                return Err(LogoError::new(format!(
+                    "In line {}, a math operator do not have enough operands",
+                    next_line.to_string().yellow()
+                )));
+            }
         }
     }
     let iter_rev = vec_deque.into_iter().rev();
@@ -110,17 +114,21 @@ pub fn math_calculation(tokens: &mut std::str::SplitWhitespace,
             let operand1 = match stack.pop_back() {
                 Some(value1) => value1,
                 None => {
-                    eprintln!("In line {next_line}, a math operator do not have enough operands");
-                    return Err(LogoError);
-                },
+                    return Err(LogoError::new(format!(
+                        "In line {}, a math operator do not have enough operands",
+                        next_line.to_string().yellow()
+                    )));
+                }
             };
             // get operand2
             let operand2 = match stack.pop_back() {
                 Some(value2) => value2,
                 None => {
-                    eprintln!("In line {next_line}, a math operator do not have enough operands");
-                    return Err(LogoError);
-                },
+                    return Err(LogoError::new(format!(
+                        "In line {}, a math operator do not have enough operands",
+                        next_line.to_string().yellow()
+                    )));
+                }
             };
             // do calculation
             let res = calculation(&operator, operand1, operand2, next_line)?;
@@ -139,117 +147,131 @@ pub fn math_calculation(tokens: &mut std::str::SplitWhitespace,
         Some(final_value) => {
             // stack have more than one result, which means too much operands
             if !stack.is_empty() {
-                eprintln!("in line {next_line}, stack have more than one result, which means too much operands!");
-                return Err(LogoError);
+                return Err(LogoError::new(format!(
+                    "in line {}, stack have more than one result, which means too much operands!",
+                    next_line.to_string().yellow()
+                )));
             }
             Ok(final_value)
-        },
+        }
         None => {
             // should not happen
-            eprintln!("in line {next_line}, the calculation return no result!");
-            Err(LogoError)
-        },
+            Err(LogoError::new(format!(
+                "in line {}, the calculation return no result!",
+                next_line.to_string().yellow()
+            )))
+        }
     }
-} 
+}
 
 // a helper function doing calculation and also operands type check
-pub fn calculation(operator: &Operator, operand1: f32, operand2: f32, next_line: &usize) -> Result<f32, LogoError> {
+pub fn calculation(
+    operator: &Operator,
+    operand1: f32,
+    operand2: f32,
+    next_line: &usize,
+) -> Result<f32, LogoError> {
     match operator {
         Operator::EQ => {
             if operand1 == operand2 {
                 Ok(TRUE)
-            }
-            else {
+            } else {
                 Ok(FALSE)
             }
-        },
+        }
         Operator::NE => {
             if operand1 != operand2 {
                 Ok(TRUE)
-        }
-            else {
+            } else {
                 Ok(FALSE)
             }
-        },
+        }
         Operator::GT => {
             if operand1 > operand2 {
                 Ok(TRUE)
-            }
-            else {
+            } else {
                 Ok(FALSE)
             }
-        },
+        }
         Operator::LT => {
             if operand1 < operand2 {
                 Ok(TRUE)
-            }
-            else {
+            } else {
                 Ok(FALSE)
             }
-        },
+        }
         Operator::AND => {
             if !is_bool_f32(operand1) || !is_bool_f32(operand2) {
-                eprintln!("In {next_line}, AND operator get a non-bool operand!");
-                return Err(LogoError);
+                return Err(LogoError::new(format!(
+                    "In {}, AND operator get a non-bool operand!",
+                    next_line.to_string().yellow()
+                )));
             }
             if operand1 == TRUE && operand2 == TRUE {
                 Ok(TRUE)
-            }
-            else {
+            } else {
                 Ok(FALSE)
             }
-        },
+        }
         Operator::OR => {
             if !is_bool_f32(operand1) || !is_bool_f32(operand2) {
-                eprintln!("In {next_line}, AND operator get a non-bool operand!");
-                return Err(LogoError);
+                return Err(LogoError::new(format!(
+                    "In {}, AND operator get a non-bool operand!",
+                    next_line.to_string().yellow()
+                )));
             }
             if operand1 == TRUE || operand2 == TRUE {
                 Ok(TRUE)
-            }
-            else {
+            } else {
                 Ok(FALSE)
             }
-        },
+        }
         Operator::ADD => {
             if is_bool_f32(operand1) || is_bool_f32(operand2) {
-                eprintln!("In {next_line}, ADD operator get a bool operand!");
-                Err(LogoError)
-            }
-            else {
+                Err(LogoError::new(format!(
+                    "In {}, ADD operator get a bool operand!",
+                    next_line.to_string().yellow()
+                )))
+            } else {
                 Ok(operand1 + operand2)
             }
-        },
+        }
         Operator::SUB => {
             if is_bool_f32(operand1) || is_bool_f32(operand2) {
-                eprintln!("In {next_line}, ADD operator get a bool operand!");
-                Err(LogoError)
-            }
-            else {
+                Err(LogoError::new(format!(
+                    "In {}, ADD operator get a bool operand!",
+                    next_line.to_string().yellow()
+                )))
+            } else {
                 Ok(operand1 - operand2)
             }
-        },
+        }
         Operator::MUL => {
             if is_bool_f32(operand1) || is_bool_f32(operand2) {
-                eprintln!("In {next_line}, ADD operator get a bool operand!");
-                Err(LogoError)
-            }
-            else {
+                Err(LogoError::new(format!(
+                    "In {}, ADD operator get a bool operand!",
+                    next_line.to_string().yellow()
+                )))
+            } else {
                 Ok(operand1 * operand2)
             }
-        },
+        }
         Operator::DIV => {
             if is_bool_f32(operand1) || is_bool_f32(operand2) {
-                eprintln!("In line {next_line}, ADD operator get a bool operand!");
-                Err(LogoError)
-            }
-            else {
+                Err(LogoError::new(format!(
+                    "In line {}, ADD operator get a bool operand!",
+                    next_line.to_string().yellow()
+                )))
+            } else {
                 if operand2 == 0.0 {
-                    eprintln!("In line {next_line}, trying to divide by 0!")
+                    return Err(LogoError::new(format!(
+                        "In line {}, trying to divide by 0!",
+                        next_line.to_string().yellow()
+                    )));
                 }
                 Ok(operand1 / operand2)
             }
-        },
+        }
     }
 }
 

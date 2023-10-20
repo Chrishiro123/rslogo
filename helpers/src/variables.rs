@@ -1,8 +1,9 @@
-use std::collections::HashMap;
-use crate::maths::math_calculation;
-use crate::token_check::{is_number, is_bool};
-use crate::{token_check::Prefix, turtle::Turtle};
 use crate::err_handling::LogoError;
+use crate::maths::math_calculation;
+use crate::token_check::{is_bool, is_number};
+use crate::{token_check::Prefix, turtle::Turtle};
+use colored::Colorize;
+use std::collections::HashMap;
 use unsvg::Color;
 use unsvg::COLORS;
 
@@ -15,24 +16,29 @@ pub fn make(variables: &mut HashMap<String, f32>, variable: &str, value: f32) {
     variables.insert(variable.to_string(), value);
 }
 
-pub fn addassign(variables: &mut HashMap<String, f32>, variable: &str, value: f32) -> Result<(), LogoError> {
+pub fn addassign(
+    variables: &mut HashMap<String, f32>,
+    variable: &str,
+    value: f32,
+) -> Result<(), LogoError> {
     let pre = variables.get(variable);
     match pre {
         Some(pre) => {
             variables.insert(variable.to_string(), value + pre).unwrap();
             Ok(())
-        },
-        None => {
-            eprintln!("Trying to ADDASSIGN a non-existing variable!");
-            Err(LogoError)
         }
+        None => Err(LogoError::new(format!(
+            "Trying to {} a non-existing variable!",
+            "ADDASSIGN".blue()
+        ))),
     }
 }
 
-pub fn get_number(prefix: &Prefix, 
-    rest: &str, 
-    turtle : &Turtle, 
-    variables: &HashMap<String, f32>, 
+pub fn get_number(
+    prefix: &Prefix,
+    rest: &str,
+    turtle: &Turtle,
+    variables: &HashMap<String, f32>,
     next_line: &usize,
     tokens: &mut std::str::SplitWhitespace,
 ) -> Result<f32, LogoError> {
@@ -45,28 +51,32 @@ pub fn get_number(prefix: &Prefix,
             Prefix::COLOR => Ok(get_color(turtle.color)),
             Prefix::QuotationValue => Ok(rest.parse::<f32>().unwrap()),
             Prefix::OperatorValue => math_calculation(tokens, rest, next_line, turtle, variables),
-            Prefix::Colon => {
-                match variables.get(rest) {
-                    Some(value) => {
-                        if value == &TRUE || value == &FALSE {
-                            eprintln!("in line {next_line}, variable: {rest}, is a bool but requires a number!");
-                            return Err(LogoError);
-                        }
-                        Ok(*value)
-                    },
-                    None => {
-                        eprintln!("in line {next_line}, trying to retrieve a non-existing variable: {rest}!");
-                        Err(LogoError)
-                    },
+            Prefix::Colon => match variables.get(rest) {
+                Some(value) => {
+                    if value == &TRUE || value == &FALSE {
+                        return Err(LogoError::new(format!(
+                            "in line {}, variable: {}, is a bool but requires a number!",
+                            next_line.to_string().yellow(),
+                            rest.red()
+                        )));
+                    }
+                    Ok(*value)
                 }
+                None => Err(LogoError::new(format!(
+                    "in line {}, trying to retrieve a non-existing variable: {}!",
+                    next_line.to_string().yellow(),
+                    rest.red()
+                ))),
             },
             //won't happen here
-            _ => Err(LogoError),
+            _ => Err(LogoError::new(format!("won't happen here"))),
         }
-    }
-    else {
-        eprintln!("In line {next_line}, trying to get a number but receving a non-number: {rest}!");
-        Err(LogoError)
+    } else {
+        Err(LogoError::new(format!(
+            "In line {}, trying to get a number but receving a non-number: {}!",
+            next_line.to_string().yellow(),
+            rest.red()
+        )))
     }
 }
 
@@ -74,18 +84,20 @@ pub fn get_bool(prefix: &Prefix, next_line: &usize) -> Result<f32, LogoError> {
     if is_bool(prefix) {
         if prefix == &Prefix::TRUE {
             Ok(TRUE)
-        }
-        else if prefix == &Prefix::FALSE{
+        } else if prefix == &Prefix::FALSE {
             Ok(FALSE)
+        } else {
+            Err(LogoError::new(format!(
+                "Error occured in {} in line: {}",
+                "get_bool".blue(),
+                next_line.to_string().yellow()
+            )))
         }
-        else {
-            eprintln!("Error occured in get_bool in line: {next_line}");
-            Err(LogoError)
-            }
-    }
-    else {
-        eprintln!("Trying to get a bool in line {next_line}, but getting a non-bool");
-        Err(LogoError)
+    } else {
+        Err(LogoError::new(format!(
+            "Trying to get a bool in line {}, but getting a non-bool",
+            next_line.to_string().yellow()
+        )))
     }
 }
 
@@ -102,33 +114,37 @@ pub fn get_color(color: &Color) -> f32 {
 
 pub fn get_int(float: f32, next_line: &usize) -> Result<i32, LogoError> {
     if float.round() != float {
-        eprintln!("in line: {next_line}, a parameter requires a integer with: {float}, but received a non-integer!");
-        return Err(LogoError);
+        return Err(LogoError::new(format!(
+            "in line: {}, a parameter requires a integer with: {}, but received a non-integer!",
+            next_line.to_string().yellow(),
+            float.to_string().red()
+        )));
     }
     Ok(float as i32)
 }
 
-pub fn get_number_or_bool(prefix: &Prefix, 
-    rest: &str, 
-    turtle : &Turtle, 
-    variables: &HashMap<String, f32>, 
-    next_line: &usize, 
-    tokens: &mut std::str::SplitWhitespace
+pub fn get_number_or_bool(
+    prefix: &Prefix,
+    rest: &str,
+    turtle: &Turtle,
+    variables: &HashMap<String, f32>,
+    next_line: &usize,
+    tokens: &mut std::str::SplitWhitespace,
 ) -> Result<f32, LogoError> {
-
     // check if it is a variable containing a bool
     if prefix == &Prefix::Colon {
         if let Some(value) = variables.get(rest) {
             if value == &TRUE {
                 return Ok(TRUE);
-            }
-            else if value == &FALSE {
+            } else if value == &FALSE {
                 return Ok(FALSE);
             }
-        }
-        else {
-            eprintln!("in line {next_line}, failed to retrieve a variable: {rest}");
-            return Err(LogoError);
+        } else {
+            return Err(LogoError::new(format!(
+                "in line {}, failed to retrieve a variable: {}",
+                next_line.to_string().yellow(),
+                rest.red()
+            )));
         }
     }
 
@@ -145,9 +161,11 @@ pub fn get_number_or_bool(prefix: &Prefix,
     // check if it is a number value or variable
     else if is_number(prefix) {
         return get_number(prefix, rest, turtle, variables, next_line, tokens);
-    }
-    else {
-        eprintln!("in line: {next_line}, trying to get a number or bool with: {rest}, but failed");
-        return Err(LogoError);
+    } else {
+        return Err(LogoError::new(format!(
+            "in line: {}, trying to get a number or bool with: {}, but failed",
+            next_line.to_string().yellow(),
+            rest.red()
+        )));
     }
 }
