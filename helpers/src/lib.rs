@@ -4,6 +4,7 @@ pub mod token_check;
 pub mod variables;
 pub mod conditions;
 pub mod maths;
+pub mod err_handling;
 
 //#[cfg(test)]
 //mod tests {

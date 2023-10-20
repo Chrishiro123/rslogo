@@ -2,6 +2,7 @@ use unsvg::Image;
 use unsvg::Color;
 use unsvg::COLORS;
 use unsvg::get_end_coordinates;
+use crate::err_handling::LogoError;
 
 pub struct Turtle {
     pub x: f32,
@@ -24,46 +25,46 @@ impl Turtle {
 
     }
 
-    pub fn penup(&mut self) -> Result<(), ()> {
+    pub fn penup(&mut self) -> Result<(), LogoError> {
         self.down = false;
         Ok(())
     }
 
-    pub fn pendown(&mut self) -> Result<(), ()> {
+    pub fn pendown(&mut self) -> Result<(), LogoError> {
         self.down = true;
          Ok(())
     }
 
-    pub fn setx(&mut self, x: f32) -> Result<(), ()> {
+    pub fn setx(&mut self, x: f32) -> Result<(), LogoError> {
         self.x = x;
         Ok(())
     }
 
-    pub fn sety(&mut self, y: f32) -> Result<(), ()> {
+    pub fn sety(&mut self, y: f32) -> Result<(), LogoError> {
         self.y = y;
         Ok(())
     }
 
-    pub fn setpencolor(&mut self, color_code: i32) -> Result<(), ()> {
+    pub fn setpencolor(&mut self, color_code: i32) -> Result<(), LogoError> {
         if !(1..=15).contains(&color_code) {
-            return Err(());
+            return Err(LogoError);
         }
         //return reference of the element to prevent copy
         self.color = &COLORS[color_code as usize];
         Ok(())
     }
 
-    pub fn turn(&mut self, degree: i32) -> Result<(), ()> {
+    pub fn turn(&mut self, degree: i32) -> Result<(), LogoError> {
         self.direction += degree;
         Ok(())
     }
 
-    pub fn setheading(&mut self, degree: i32) -> Result<(), ()> {
+    pub fn setheading(&mut self, degree: i32) -> Result<(), LogoError> {
         self.direction = degree;
         Ok(())
     }
 
-    pub fn forward(&mut self, numpixels: f32, image: &mut Image) -> Result<(), ()> {
+    pub fn forward(&mut self, numpixels: f32, image: &mut Image) -> Result<(), LogoError> {
         if self.down {
             match image.draw_simple_line(self.x, self.y, self.direction, numpixels, *self.color) {
                 Ok((x, y)) => {
@@ -72,7 +73,7 @@ impl Turtle {
                 }
                 Err(e) => {
                     eprintln!("error occured in forward function: {e:?}");
-                    return Err(());
+                    return Err(LogoError);
                 }
             }
         }
@@ -84,7 +85,7 @@ impl Turtle {
         Ok(())
     }
 
-    pub fn back(&mut self, numpixels: f32, image: &mut Image) -> Result<(), ()> {
+    pub fn back(&mut self, numpixels: f32, image: &mut Image) -> Result<(), LogoError> {
         if self.down {
             match image.draw_simple_line(self.x, self.y, self.direction + 180, numpixels, *self.color) {
                 Ok((x, y)) => {
@@ -93,7 +94,7 @@ impl Turtle {
                 }
                 Err(e) => {
                     eprintln!("error occured in back function: {e:?}");
-                    return Err(());
+                    return Err(LogoError);
                 }
             }
         }
@@ -105,7 +106,7 @@ impl Turtle {
         Ok(())
     }
 
-    pub fn left(&mut self, numpixels: f32, image: &mut Image) -> Result<(), ()> {
+    pub fn left(&mut self, numpixels: f32, image: &mut Image) -> Result<(), LogoError> {
         if self.down {
             match image.draw_simple_line(self.x, self.y, self.direction + 270, numpixels, *self.color) {
                 Ok((x, y)) => {
@@ -114,7 +115,7 @@ impl Turtle {
                 }
                 Err(e) => {
                     eprintln!("error occured in left function: {e:?}");
-                    return Err(());
+                    return Err(LogoError);
                 }
             }
         }
@@ -126,7 +127,7 @@ impl Turtle {
         Ok(())
     }
 
-    pub fn right(&mut self, numpixels: f32, image: &mut Image) -> Result<(), ()> {
+    pub fn right(&mut self, numpixels: f32, image: &mut Image) -> Result<(), LogoError> {
         if self.down {
             match image.draw_simple_line(self.x, self.y, self.direction + 90, numpixels, *self.color){
                 Ok((x, y)) => {
@@ -135,7 +136,7 @@ impl Turtle {
                 }
                 Err(e) => {
                     eprintln!("error occured in right function: {e:?}");
-                    return Err(());
+                    return Err(LogoError);
                 }
             }
         }

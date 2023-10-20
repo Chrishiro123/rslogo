@@ -2,6 +2,7 @@ use std::collections::{VecDeque, HashMap};
 use crate::token_check::*;
 use crate::turtle::Turtle;
 use crate::variables::*;
+use crate::err_handling::LogoError;
 
 #[derive(Debug)]
 pub enum Operator {
@@ -41,7 +42,7 @@ pub fn is_operator(token: &str) -> bool {
 // given the Option<&str> (not sure if there is a token)
 // and get the meaning (i.e. operator)
 // report error if no token inside or it is not a operator
-pub fn get_operator(token: Option<&str>, next_line: &usize) -> Result<Operator, ()> {
+pub fn get_operator(token: Option<&str>, next_line: &usize) -> Result<Operator, LogoError> {
     match token {
         Some(keyword) => {
             match keyword {
@@ -57,13 +58,13 @@ pub fn get_operator(token: Option<&str>, next_line: &usize) -> Result<Operator, 
                 "/" => Ok(Operator::DIV),
                 _ => {
                     eprintln!("Get: {keyword}, in line: {next_line} when getting operator!");
-                    Err(())
+                    Err(LogoError)
                 },
             }
         },
         None => {
             eprintln!("in line {next_line}, trying to get a operator but found nothing!");
-            Err(())
+            Err(LogoError)
         },
     }
 }
@@ -73,7 +74,7 @@ pub fn math_calculation(tokens: &mut std::str::SplitWhitespace,
     next_line: &usize, 
     turtle: &Turtle, 
     variables: &HashMap<String, f32>
-) -> Result<f32, ()> {
+) -> Result<f32, LogoError> {
 
     // vecdeque for storing tokens
     let mut vec_deque = VecDeque::new();
@@ -92,7 +93,7 @@ pub fn math_calculation(tokens: &mut std::str::SplitWhitespace,
             },
             None => {
                 eprintln!("In line {next_line}, a math operator do not have enough operands");
-                return Err(());
+                return Err(LogoError);
             },
         }
     }
@@ -110,7 +111,7 @@ pub fn math_calculation(tokens: &mut std::str::SplitWhitespace,
                 Some(value1) => value1,
                 None => {
                     eprintln!("In line {next_line}, a math operator do not have enough operands");
-                    return Err(());
+                    return Err(LogoError);
                 },
             };
             // get operand2
@@ -118,7 +119,7 @@ pub fn math_calculation(tokens: &mut std::str::SplitWhitespace,
                 Some(value2) => value2,
                 None => {
                     eprintln!("In line {next_line}, a math operator do not have enough operands");
-                    return Err(());
+                    return Err(LogoError);
                 },
             };
             // do calculation
@@ -139,20 +140,20 @@ pub fn math_calculation(tokens: &mut std::str::SplitWhitespace,
             // stack have more than one result, which means too much operands
             if !stack.is_empty() {
                 eprintln!("in line {next_line}, stack have more than one result, which means too much operands!");
-                return Err(());
+                return Err(LogoError);
             }
             Ok(final_value)
         },
         None => {
             // should not happen
             eprintln!("in line {next_line}, the calculation return no result!");
-            Err(())
+            Err(LogoError)
         },
     }
 } 
 
 // a helper function doing calculation and also operands type check
-pub fn calculation(operator: &Operator, operand1: f32, operand2: f32, next_line: &usize) -> Result<f32, ()> {
+pub fn calculation(operator: &Operator, operand1: f32, operand2: f32, next_line: &usize) -> Result<f32, LogoError> {
     match operator {
         Operator::EQ => {
             if operand1 == operand2 {
@@ -189,7 +190,7 @@ pub fn calculation(operator: &Operator, operand1: f32, operand2: f32, next_line:
         Operator::AND => {
             if !is_bool_f32(operand1) || !is_bool_f32(operand2) {
                 eprintln!("In {next_line}, AND operator get a non-bool operand!");
-                return Err(());
+                return Err(LogoError);
             }
             if operand1 == TRUE && operand2 == TRUE {
                 Ok(TRUE)
@@ -201,7 +202,7 @@ pub fn calculation(operator: &Operator, operand1: f32, operand2: f32, next_line:
         Operator::OR => {
             if !is_bool_f32(operand1) || !is_bool_f32(operand2) {
                 eprintln!("In {next_line}, AND operator get a non-bool operand!");
-                return Err(());
+                return Err(LogoError);
             }
             if operand1 == TRUE || operand2 == TRUE {
                 Ok(TRUE)
@@ -213,7 +214,7 @@ pub fn calculation(operator: &Operator, operand1: f32, operand2: f32, next_line:
         Operator::ADD => {
             if is_bool_f32(operand1) || is_bool_f32(operand2) {
                 eprintln!("In {next_line}, ADD operator get a bool operand!");
-                Err(())
+                Err(LogoError)
             }
             else {
                 Ok(operand1 + operand2)
@@ -222,7 +223,7 @@ pub fn calculation(operator: &Operator, operand1: f32, operand2: f32, next_line:
         Operator::SUB => {
             if is_bool_f32(operand1) || is_bool_f32(operand2) {
                 eprintln!("In {next_line}, ADD operator get a bool operand!");
-                Err(())
+                Err(LogoError)
             }
             else {
                 Ok(operand1 - operand2)
@@ -231,7 +232,7 @@ pub fn calculation(operator: &Operator, operand1: f32, operand2: f32, next_line:
         Operator::MUL => {
             if is_bool_f32(operand1) || is_bool_f32(operand2) {
                 eprintln!("In {next_line}, ADD operator get a bool operand!");
-                Err(())
+                Err(LogoError)
             }
             else {
                 Ok(operand1 * operand2)
@@ -240,7 +241,7 @@ pub fn calculation(operator: &Operator, operand1: f32, operand2: f32, next_line:
         Operator::DIV => {
             if is_bool_f32(operand1) || is_bool_f32(operand2) {
                 eprintln!("In line {next_line}, ADD operator get a bool operand!");
-                Err(())
+                Err(LogoError)
             }
             else {
                 if operand2 == 0.0 {

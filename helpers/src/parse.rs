@@ -5,6 +5,7 @@ use crate::token_check::*;
 use crate::variables::*;
 use crate::conditions::*;
 use crate::maths::*;
+use crate::err_handling::LogoError;
 use std::collections::HashMap;
 use std::collections::VecDeque;
 
@@ -13,7 +14,7 @@ pub fn parse(mut tokens: std::str::SplitWhitespace,
       variables: &mut HashMap<String, f32>,
       _index: &mut usize,
       conditions: &mut VecDeque<Condition>,
-    ) -> Result<(), ()> {
+    ) -> Result<(), LogoError> {
     let first = tokens.next();
     // check if this line is in while or if loop
     // and dothing if not in any condition (empty conditions)
@@ -41,7 +42,7 @@ pub fn parse(mut tokens: std::str::SplitWhitespace,
             //check no extra parameter
             if tokens.next().is_some() {
                 eprintln!("Too many parameters in PENUP in index: {_index}!");
-                return Err(());                        
+                return Err(LogoError);                        
             }
             turtle.penup()
         },
@@ -51,7 +52,7 @@ pub fn parse(mut tokens: std::str::SplitWhitespace,
             //check no extra parameter
             if tokens.next().is_some() {
                 eprintln!("Too many parameters in PENDOWN in line: {_index}!");
-                return Err(());                        
+                return Err(LogoError);                        
             }
             turtle.pendown()
         },
@@ -64,7 +65,7 @@ pub fn parse(mut tokens: std::str::SplitWhitespace,
             let numpixels = get_number(&prefix, rest, turtle, variables, _index, &mut tokens)?;
             if tokens.next().is_some() {
                 eprintln!("Too many parameters in FORWARD in line: {_index}!");
-                return Err(());                        
+                return Err(LogoError);                        
             }
             turtle.forward(numpixels, image)
         },
@@ -77,7 +78,7 @@ pub fn parse(mut tokens: std::str::SplitWhitespace,
             //check no extra parameter exists
             if tokens.next().is_some() {
                 eprintln!("Too many parameters in BACK in line: {_index}!");
-                return Err(());                        
+                return Err(LogoError);                        
             }
             turtle.back(numpixdels, image)
         },
@@ -90,7 +91,7 @@ pub fn parse(mut tokens: std::str::SplitWhitespace,
             //check no extra parameter exists
             if tokens.next().is_some() {
                 eprintln!("Too many parameters in LEFT in line: {_index}!");
-                return Err(());                        
+                return Err(LogoError);                        
             }
             turtle.left(numpixels, image)
         },
@@ -102,7 +103,7 @@ pub fn parse(mut tokens: std::str::SplitWhitespace,
             //check no extra parameter exists
             if tokens.next().is_some() {
                 eprintln!("Too many parameters in RIGHT in line: {_index}!");
-                return Err(());                        
+                return Err(LogoError);                        
             }
             turtle.right(numpixdels, image)
         },
@@ -117,7 +118,7 @@ pub fn parse(mut tokens: std::str::SplitWhitespace,
             //check no extra parameter exists
             if tokens.next().is_some() {
                 eprintln!("Too many parameters in SETPENCOLOR in line {_index}!");
-                return Err(());                        
+                return Err(LogoError);                        
             }
                 turtle.setpencolor(value_int)
         },
@@ -132,7 +133,7 @@ pub fn parse(mut tokens: std::str::SplitWhitespace,
             //check no extra parameter exists
             if tokens.next().is_some() {
                 eprintln!("Too many parameters in TURN in line: {_index}");
-                return Err(());                        
+                return Err(LogoError);                        
             }
             turtle.turn(value_int)
         },
@@ -146,7 +147,7 @@ pub fn parse(mut tokens: std::str::SplitWhitespace,
             //check no extra parameter exists
             if tokens.next().is_some() {
                 eprintln!("Too many parameters in SETHEADING in line: {_index}!");
-                return Err(());                        
+                return Err(LogoError);                        
             }
             turtle.setheading(value_int)
         }
@@ -159,7 +160,7 @@ pub fn parse(mut tokens: std::str::SplitWhitespace,
             //check no extra parameter exists
             if tokens.next().is_some() {
                 eprintln!("Too many parameters in SETX in line: {_index}!");
-                return Err(());                        
+                return Err(LogoError);                        
             }
             turtle.setx(value)
         },
@@ -172,7 +173,7 @@ pub fn parse(mut tokens: std::str::SplitWhitespace,
             //check no extra parameter exists
             if tokens.next().is_some() {
                 eprintln!("Too many parameters in SETY in line: {_index}!");
-                return Err(());                        
+                return Err(LogoError);                        
             }
             turtle.sety(value)
         },
@@ -184,7 +185,7 @@ pub fn parse(mut tokens: std::str::SplitWhitespace,
             //check grammer
             if prefix != Prefix::QuotationVar {
                 eprintln!("in line: {_index}, MAKE requires a variable as parameter!");
-                Err(())
+                Err(LogoError)
             }
             else {
                 //get the second parameter
@@ -192,7 +193,7 @@ pub fn parse(mut tokens: std::str::SplitWhitespace,
                 let value = get_number_or_bool(&prefix, value_str, turtle, variables, _index, &mut tokens)?;
                 if tokens.next().is_some() {
                     eprintln!("Too many parameters in MAKE in line: {_index}!");
-                    return Err(());                        
+                    return Err(LogoError);                        
                 }
                 make(variables, variable_name, value);
                 Ok(())
@@ -205,7 +206,7 @@ pub fn parse(mut tokens: std::str::SplitWhitespace,
             //check grammer
             if prefix != Prefix::QuotationVar {
                 eprintln!("in line: {_index}, ADDASSIGN requires a variable as parameter!");
-                Err(())
+                Err(LogoError)
             }
             else {
                 //get the second parameter
@@ -213,7 +214,7 @@ pub fn parse(mut tokens: std::str::SplitWhitespace,
                 let value = get_number(&prefix, rest2, turtle, variables, _index, &mut tokens)?;
                 if tokens.next().is_some() {
                     eprintln!("Too many parameters in ADDASSIGN in line: {_index}!");
-                    return Err(());                        
+                    return Err(LogoError);                        
                 }
                 addassign(variables, rest1, value)
             }
@@ -239,7 +240,7 @@ pub fn parse(mut tokens: std::str::SplitWhitespace,
                 Some(value) => value,
                 None => {
                     eprintln!("in line {next_line}, no parameter exist after IF");
-                    return Err(());
+                    return Err(LogoError);
                 }
             };
 
@@ -254,7 +255,7 @@ pub fn parse(mut tokens: std::str::SplitWhitespace,
             // start calculation
             let res = if !is_return_bool(&first_operator) {
                 eprintln!("In line {next_line}, The result of operator: {first_operator_str} of IF condition is not a bool!");
-                return Err(());
+                return Err(LogoError);
             }
             else {
                 calculation(&first_operator, value1, value2, &next_line)?
@@ -272,12 +273,12 @@ pub fn parse(mut tokens: std::str::SplitWhitespace,
             if let Some(value) = tokens.next() {
                 if value != "[" {
                     eprintln!("extra parameter in IF condition in line {next_line}!");
-                    return Err(());
+                    return Err(LogoError);
                 }
             }
             else {
                 eprintln!("missing [ in IF condition in line {next_line}!");
-                return Err(());
+                return Err(LogoError);
             }
             *_index += 1;
             Ok(())
@@ -302,7 +303,7 @@ pub fn parse(mut tokens: std::str::SplitWhitespace,
                 Some(value) => value,
                 None => {
                     eprintln!("in line {next_line}, no parameter exist after WHILE");
-                    return Err(());
+                    return Err(LogoError);
                 }
             };
 
@@ -331,7 +332,7 @@ pub fn parse(mut tokens: std::str::SplitWhitespace,
             // start calculation
             let while_result = if !is_return_bool(&first_operator) {
                 eprintln!("In line {next_line}, The result of operator: {first_operator_str} of WHILE condition is not a bool!");
-                return Err(());
+                return Err(LogoError);
             }
             else {
                 calculation(&first_operator, value1, value2, &next_line)?
@@ -354,7 +355,7 @@ pub fn parse(mut tokens: std::str::SplitWhitespace,
             if let Some(value) = tokens.next() {
                 if value != "[" {
                     eprintln!("extra parameter in WHILE condition in line {next_line}!");
-                    return Err(());
+                    return Err(LogoError);
                 }
             }
             else {
@@ -372,7 +373,7 @@ pub fn parse(mut tokens: std::str::SplitWhitespace,
                 // if not in any conditions but find ], report error
                 None => {
                     eprintln!("found ] without matching [!");
-                    return Err(());
+                    return Err(LogoError);
                 },
             };
             // if is in if condition, drop out the condition and continue next line
@@ -393,7 +394,7 @@ pub fn parse(mut tokens: std::str::SplitWhitespace,
                 Ok(())
             }
         }
-        Some(&_) => Err(()),
+        Some(&_) => Err(LogoError),
         None  => {
             *_index += 1;
             Ok(())

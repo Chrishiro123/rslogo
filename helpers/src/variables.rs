@@ -2,6 +2,7 @@ use std::collections::HashMap;
 use crate::maths::math_calculation;
 use crate::token_check::{is_number, is_bool};
 use crate::{token_check::Prefix, turtle::Turtle};
+use crate::err_handling::LogoError;
 use unsvg::Color;
 use unsvg::COLORS;
 
@@ -14,7 +15,7 @@ pub fn make(variables: &mut HashMap<String, f32>, variable: &str, value: f32) {
     variables.insert(variable.to_string(), value);
 }
 
-pub fn addassign(variables: &mut HashMap<String, f32>, variable: &str, value: f32) -> Result<(), ()> {
+pub fn addassign(variables: &mut HashMap<String, f32>, variable: &str, value: f32) -> Result<(), LogoError> {
     let pre = variables.get(variable);
     match pre {
         Some(pre) => {
@@ -23,7 +24,7 @@ pub fn addassign(variables: &mut HashMap<String, f32>, variable: &str, value: f3
         },
         None => {
             eprintln!("Trying to ADDASSIGN a non-existing variable!");
-            Err(())
+            Err(LogoError)
         }
     }
 }
@@ -34,7 +35,7 @@ pub fn get_number(prefix: &Prefix,
     variables: &HashMap<String, f32>, 
     next_line: &usize,
     tokens: &mut std::str::SplitWhitespace,
-) -> Result<f32, ()> {
+) -> Result<f32, LogoError> {
     //logo code start from line 1, while index start from 0, so next line is actually the current line in logo code
     if is_number(prefix) {
         match prefix {
@@ -49,27 +50,27 @@ pub fn get_number(prefix: &Prefix,
                     Some(value) => {
                         if value == &TRUE || value == &FALSE {
                             eprintln!("in line {next_line}, variable: {rest}, is a bool but requires a number!");
-                            return Err(());
+                            return Err(LogoError);
                         }
                         Ok(*value)
                     },
                     None => {
                         eprintln!("in line {next_line}, trying to retrieve a non-existing variable: {rest}!");
-                        Err(())
+                        Err(LogoError)
                     },
                 }
             },
             //won't happen here
-            _ => Err(()),
+            _ => Err(LogoError),
         }
     }
     else {
         eprintln!("In line {next_line}, trying to get a number but receving a non-number: {rest}!");
-        Err(())
+        Err(LogoError)
     }
 }
 
-pub fn get_bool(prefix: &Prefix, next_line: &usize) -> Result<f32, ()> {
+pub fn get_bool(prefix: &Prefix, next_line: &usize) -> Result<f32, LogoError> {
     if is_bool(prefix) {
         if prefix == &Prefix::TRUE {
             Ok(TRUE)
@@ -79,12 +80,12 @@ pub fn get_bool(prefix: &Prefix, next_line: &usize) -> Result<f32, ()> {
         }
         else {
             eprintln!("Error occured in get_bool in line: {next_line}");
-            Err(())
+            Err(LogoError)
             }
     }
     else {
         eprintln!("Trying to get a bool in line {next_line}, but getting a non-bool");
-        Err(())
+        Err(LogoError)
     }
 }
 
@@ -94,15 +95,15 @@ pub fn get_color(color: &Color) -> f32 {
             return i as f32;
         }
     }
-    
+
     eprintln!("error in get_color!, color: {color:?}");
     0.0
 }
 
-pub fn get_int(float: f32, next_line: &usize) -> Result<i32, ()> {
+pub fn get_int(float: f32, next_line: &usize) -> Result<i32, LogoError> {
     if float.round() != float {
         eprintln!("in line: {next_line}, a parameter requires a integer with: {float}, but received a non-integer!");
-        return Err(());
+        return Err(LogoError);
     }
     Ok(float as i32)
 }
@@ -113,7 +114,7 @@ pub fn get_number_or_bool(prefix: &Prefix,
     variables: &HashMap<String, f32>, 
     next_line: &usize, 
     tokens: &mut std::str::SplitWhitespace
-) -> Result<f32, ()> {
+) -> Result<f32, LogoError> {
 
     // check if it is a variable containing a bool
     if prefix == &Prefix::Colon {
@@ -127,7 +128,7 @@ pub fn get_number_or_bool(prefix: &Prefix,
         }
         else {
             eprintln!("in line {next_line}, failed to retrieve a variable: {rest}");
-            return Err(());
+            return Err(LogoError);
         }
     }
 
@@ -147,6 +148,6 @@ pub fn get_number_or_bool(prefix: &Prefix,
     }
     else {
         eprintln!("in line: {next_line}, trying to get a number or bool with: {rest}, but failed");
-        return Err(());
+        return Err(LogoError);
     }
 }
