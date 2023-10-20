@@ -40,15 +40,14 @@ fn main() -> Result<(), ()> {
 
     // read in file
     let mut lines: Vec<&str> = Vec::new();
-    let file_string: String;
     let result_to_string = read_to_string(file_path);
-    match result_to_string {
-        Ok(readed) => file_string = readed,
+    let file_string = match result_to_string {
+        Ok(readed) => readed,
         Err(e) => {
             eprintln!("Error reading the lg file: {e}");
             return Err(());
         }
-    }
+    };
     for line in file_string.lines() {
         lines.push(line);
     }
@@ -75,7 +74,7 @@ fn main() -> Result<(), ()> {
         return Err(());
     }
 
-    match image_path.extension().map(|s| s.to_str()).flatten() {
+    match image_path.extension().and_then(|s| s.to_str()) {
         Some("svg") => {
             let res = image.save_svg(&image_path);
             if let Err(e) = res {
