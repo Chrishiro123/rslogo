@@ -1,6 +1,7 @@
 extern crate helpers;
 
 use clap::Parser;
+use helpers::procedures::*;
 use helpers::conditions::*;
 use helpers::{parse::parse, turtle::Turtle};
 use std::{
@@ -40,6 +41,11 @@ fn main() -> Result<(), ()> {
     let mut variables: HashMap<String, f32> = HashMap::new();
     // store all while and ifs.
     let mut conditions: VecDeque<Condition> = VecDeque::new();
+    // initially not in a procedure
+    let mut proc_condi = ProcCondi::Out;
+    // procedure parameters, initially not in a procedure so it is None
+    let mut proc_para: Option<HashMap<String, f32>> = None;
+    let mut procedures: Vec<Procedure> = Vec::new();
 
     // read in file
     let mut lines: Vec<&str> = Vec::new();
@@ -69,6 +75,9 @@ fn main() -> Result<(), ()> {
             &mut variables,
             &mut index,
             &mut conditions,
+            &mut proc_condi,
+            &mut proc_para,
+            &mut procedures,
         );
         if let Err(e) = result {
             eprintln!("{e}");
@@ -78,10 +87,15 @@ fn main() -> Result<(), ()> {
         }
     }
 
-    //after logo program is finished, if still in IF/WHILE bracket, report error
+    // after logo program is finished, if still in IF/WHILE bracket, report error
     if !conditions.is_empty() {
         println!("{conditions:?}");
         eprintln!("logo code ended within incomplete WHILE/IF bracket!");
+        return Err(());
+    }
+    // after logo program is finished, if still in a procedure, report error
+    if proc_condi != ProcCondi::Out {
+        eprintln!("logo code ended within a procedure!");
         return Err(());
     }
 

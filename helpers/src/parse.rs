@@ -5,6 +5,7 @@ use crate::maths::*;
 use crate::token_check::*;
 use crate::turtle::*;
 use crate::variables::*;
+use crate::procedures::*;
 use colored::Colorize;
 use std::collections::HashMap;
 use std::collections::VecDeque;
@@ -17,8 +18,20 @@ pub fn parse(
     variables: &mut HashMap<String, f32>,
     _index: &mut usize,
     conditions: &mut VecDeque<Condition>,
+    proc_condi: &mut ProcCondi,
+    proc_paras: &mut Option<HashMap<String, f32>>,
+    procedures: &mut Vec<Procedure>,
 ) -> Result<(), LogoError> {
     let first = tokens.next();
+    // check if this line is in a procedure
+    // if is and is during defining, do nothing
+    if proc_condi == &mut ProcCondi::Defining && first != Some("END") {
+        // if it is not END, do nothing
+        //if it is END, will handle this in END branch
+            *_index += 1;
+            return Ok(());
+    }
+
     // check if this line is in while or if loop
     // and dothing if not in any condition (empty conditions)
     if let Some(condition) = conditions.back() {
@@ -68,7 +81,7 @@ pub fn parse(
             //get the first parameter
             let (prefix, rest) = prefix_check(tokens.next());
             //check no extra parameter exists
-            let numpixels = get_number(&prefix, rest, turtle, variables, _index, &mut tokens)?;
+            let numpixels = get_number(&prefix, rest, turtle, variables, _index, &mut tokens, &proc_condi, &proc_paras)?;
             if tokens.next().is_some() {
                 return Err(LogoError::new(format!(
                     "Too many parameters in {} in line: {}!",
@@ -83,7 +96,7 @@ pub fn parse(
             *_index += 1;
             //get the first parameter
             let (prefix, rest) = prefix_check(tokens.next());
-            let numpixdels = get_number(&prefix, rest, turtle, variables, _index, &mut tokens)?;
+            let numpixdels = get_number(&prefix, rest, turtle, variables, _index, &mut tokens, &proc_condi, &proc_paras)?;
             //check no extra parameter exists
             if tokens.next().is_some() {
                 return Err(LogoError::new(format!(
@@ -99,7 +112,7 @@ pub fn parse(
             *_index += 1;
             //get the first parameter
             let (prefix, rest) = prefix_check(tokens.next());
-            let numpixels = get_number(&prefix, rest, turtle, variables, _index, &mut tokens)?;
+            let numpixels = get_number(&prefix, rest, turtle, variables, _index, &mut tokens, &proc_condi, &proc_paras)?;
             //check no extra parameter exists
             if tokens.next().is_some() {
                 return Err(LogoError::new(format!(
@@ -114,7 +127,7 @@ pub fn parse(
             *_index += 1;
             //get the first parameter
             let (prefix, rest) = prefix_check(tokens.next());
-            let numpixdels = get_number(&prefix, rest, turtle, variables, _index, &mut tokens)?;
+            let numpixdels = get_number(&prefix, rest, turtle, variables, _index, &mut tokens, &proc_condi, &proc_paras)?;
             //check no extra parameter exists
             if tokens.next().is_some() {
                 return Err(LogoError::new(format!(
@@ -130,7 +143,7 @@ pub fn parse(
             *_index += 1;
             //get the first parameter
             let (prefix, rest) = prefix_check(tokens.next());
-            let value = get_number(&prefix, rest, turtle, variables, _index, &mut tokens)?;
+            let value = get_number(&prefix, rest, turtle, variables, _index, &mut tokens, &proc_condi, &proc_paras)?;
             //check the input is a integer
             let value_int = get_int(value, _index)?;
             //check no extra parameter exists
@@ -148,7 +161,7 @@ pub fn parse(
             *_index += 1;
             //get the first parameter
             let (prefix, rest) = prefix_check(tokens.next());
-            let value = get_number(&prefix, rest, turtle, variables, _index, &mut tokens)?;
+            let value = get_number(&prefix, rest, turtle, variables, _index, &mut tokens, &proc_condi, &proc_paras)?;
             //check the input is a integer
             let value_int = get_int(value, _index)?;
             //check no extra parameter exists
@@ -166,7 +179,7 @@ pub fn parse(
             *_index += 1;
             //get the first parameter
             let (prefix, rest) = prefix_check(tokens.next());
-            let value = get_number(&prefix, rest, turtle, variables, _index, &mut tokens)?;
+            let value = get_number(&prefix, rest, turtle, variables, _index, &mut tokens, &proc_condi, &proc_paras)?;
             let value_int = get_int(value, _index)?;
             //check no extra parameter exists
             if tokens.next().is_some() {
@@ -183,7 +196,7 @@ pub fn parse(
             *_index += 1;
             //get the first parameter
             let (prefix, rest) = prefix_check(tokens.next());
-            let value = get_number(&prefix, rest, turtle, variables, _index, &mut tokens)?;
+            let value = get_number(&prefix, rest, turtle, variables, _index, &mut tokens, &proc_condi, &proc_paras)?;
             //check no extra parameter exists
             if tokens.next().is_some() {
                 return Err(LogoError::new(format!(
@@ -199,7 +212,7 @@ pub fn parse(
             *_index += 1;
             //get the first parameter
             let (prefix, rest) = prefix_check(tokens.next());
-            let value = get_number(&prefix, rest, turtle, variables, _index, &mut tokens)?;
+            let value = get_number(&prefix, rest, turtle, variables, _index, &mut tokens, &proc_condi, &proc_paras)?;
             //check no extra parameter exists
             if tokens.next().is_some() {
                 return Err(LogoError::new(format!(
@@ -226,7 +239,7 @@ pub fn parse(
                 //get the second parameter
                 let (prefix, value_str) = prefix_check(tokens.next());
                 let value =
-                    get_number_or_bool(&prefix, value_str, turtle, variables, _index, &mut tokens)?;
+                    get_number_or_bool(&prefix, value_str, turtle, variables, _index, &mut tokens, &proc_condi, &proc_paras)?;
                 if tokens.next().is_some() {
                     return Err(LogoError::new(format!(
                         "Too many parameters in {} in line: {}!",
@@ -252,7 +265,7 @@ pub fn parse(
             } else {
                 //get the second parameter
                 let (prefix, rest2) = prefix_check(tokens.next());
-                let value = get_number(&prefix, rest2, turtle, variables, _index, &mut tokens)?;
+                let value = get_number(&prefix, rest2, turtle, variables, _index, &mut tokens, &proc_condi, &proc_paras)?;
                 if tokens.next().is_some() {
                     return Err(LogoError::new(format!(
                         "Too many parameters in {} in line: {}!",
@@ -294,12 +307,12 @@ pub fn parse(
             //get the first parameter of IF
             let (prefix, rest) = prefix_check(tokens.next());
             let value1 =
-                get_number_or_bool(&prefix, rest, turtle, variables, &next_line, &mut tokens)?;
+                get_number_or_bool(&prefix, rest, turtle, variables, &next_line, &mut tokens, &proc_condi, &proc_paras)?;
 
             //get the second parameter of IF
             let (prefix, rest) = prefix_check(tokens.next());
             let value2 =
-                get_number_or_bool(&prefix, rest, turtle, variables, &next_line, &mut tokens)?;
+                get_number_or_bool(&prefix, rest, turtle, variables, &next_line, &mut tokens, &proc_condi, &proc_paras)?;
 
             // start calculation
             let res = if !is_return_bool(&first_operator) {
@@ -370,12 +383,12 @@ pub fn parse(
             //get the first parameter of WHILE
             let (prefix, rest) = prefix_check(tokens.next());
             let value1 =
-                get_number_or_bool(&prefix, rest, turtle, variables, &next_line, &mut tokens)?;
+                get_number_or_bool(&prefix, rest, turtle, variables, &next_line, &mut tokens, &proc_condi, &proc_paras)?;
 
             //get the second parameter of WHILE
             let (prefix, rest) = prefix_check(tokens.next());
             let value2 =
-                get_number_or_bool(&prefix, rest, turtle, variables, &next_line, &mut tokens)?;
+                get_number_or_bool(&prefix, rest, turtle, variables, &next_line, &mut tokens, &proc_condi, &proc_paras)?;
 
             // check if this is a new while, or just a repeat
             let mut repeat = false;
@@ -459,7 +472,72 @@ pub fn parse(
                 Ok(())
             }
         }
-        Some(&_) => Err(LogoError::new("Wrong input".to_string())),
+        Some("TO") => {
+            let next_line = *_index + 1;
+            let proc_name = match tokens.next() {
+                Some(value) => value,
+                None => return Err(LogoError::new(format!("in line {}, get no procedure name when defining procedure!", next_line.to_string().yellow()))),
+            };
+            let mut para_names = Vec::new();
+            loop {
+                match tokens.next() {
+                    // assuming all parameters are start with " (no prefix error)
+                    Some(name) => para_names.push(name.get(1..).unwrap().to_string()),
+                    None => break,
+                }
+            }
+            procedures.push(Procedure::new(proc_name.to_string(), *_index, para_names));
+            *proc_condi = ProcCondi::Defining;
+            *_index += 1;
+            return Ok(());
+        }
+        Some("END") => {
+            let next_line = *_index + 1;
+            match proc_condi {
+                ProcCondi::Defining => {
+                    *proc_condi = ProcCondi::Out;
+                    *_index += 1;
+                    Ok(())
+                },
+                ProcCondi::Running => {
+                    *proc_condi = ProcCondi::Out;
+                    *_index += 1;
+                    Ok(())
+                },
+                ProcCondi::Out => {
+                    Err(LogoError::new(format!("In line {}, a {} keyword found outside {}!", next_line.to_string().yellow(),
+                        "END".blue(), "Procedure".blue())))
+                },
+            }
+        }
+        // run a procedure or it is just a wrong argument
+        Some(proc_name) => {
+            let next_line = *_index + 1;
+            // retrieve the start line of the procedure, and its parameter names
+            let (start_line, para_names) = match proc_match(procedures, proc_name) {
+                Some((value1, value2)) => (value1, value2),
+                // no match, it is a invalid keyword
+                None => {
+                    return Err(LogoError::new(format!("The first argument {} in line {} is invalid!", proc_name.red(), next_line.to_string().yellow())));
+                },
+            };
+
+            // create the map for parameters passed in the procedure
+            let mut para_map: HashMap<String, f32> = HashMap::new();
+            for name in para_names.iter() {
+                let (prefix, rest) = prefix_check(tokens.next());
+                let para_value = get_number(&prefix, rest, turtle, variables, &next_line, &mut tokens, &proc_condi, &proc_paras)?;
+                para_map.insert(name.to_string(), para_value);
+            }
+            // update the parameter map for running procedure
+            *proc_paras = Some(para_map);
+            
+            // running the procedure
+            *proc_condi = ProcCondi::Running;
+            // jump to the body of the procedure
+            *_index = start_line + 1;
+            Ok(())
+        },
         None => {
             *_index += 1;
             Ok(())

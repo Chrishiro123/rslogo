@@ -2,6 +2,7 @@ use crate::err_handling::LogoError;
 use crate::token_check::*;
 use crate::turtle::Turtle;
 use crate::variables::*;
+use crate::procedures::ProcCondi;
 use colored::Colorize;
 use std::collections::{HashMap, VecDeque};
 
@@ -78,6 +79,8 @@ pub fn math_calculation(
     next_line: &usize,
     turtle: &Turtle,
     variables: &HashMap<String, f32>,
+    proc_condi: &ProcCondi,
+    proc_paras: &Option<HashMap<String, f32>>,
 ) -> Result<f32, LogoError> {
     // vecdeque for storing tokens
     let mut vec_deque = VecDeque::new();
@@ -137,7 +140,7 @@ pub fn math_calculation(
         // store the value of token to stack if it is a operand
         else {
             let (prefix, rest) = prefix_check(Some(token));
-            let value = get_number_or_bool(&prefix, rest, turtle, variables, next_line, tokens)?;
+            let value = get_number_or_bool(&prefix, rest, turtle, variables, next_line, tokens, proc_condi, proc_paras)?;
             stack.push_back(value);
         }
     }

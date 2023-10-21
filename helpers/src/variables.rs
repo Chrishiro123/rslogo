@@ -2,6 +2,7 @@ use crate::err_handling::LogoError;
 use crate::maths::math_calculation;
 use crate::token_check::{is_bool, is_number};
 use crate::{token_check::Prefix, turtle::Turtle};
+use crate::procedures::*;
 use colored::Colorize;
 use std::collections::HashMap;
 use unsvg::Color;
@@ -41,17 +42,27 @@ pub fn get_number(
     variables: &HashMap<String, f32>,
     next_line: &usize,
     tokens: &mut std::str::SplitWhitespace,
+    proc_condi: &ProcCondi,
+    proc_paras: &Option<HashMap<String, f32>>,
 ) -> Result<f32, LogoError> {
-    //logo code start from line 1, while index start from 0, so next line is actually the current line in logo code
     if is_number(prefix) {
+        // retrieve variable value from procedure parameters if in procedure
+        // otherwide from variables
+        let temp = &proc_paras.clone().unwrap();
+        let to_retrieve = if proc_condi == &ProcCondi::Running {
+            temp
+        }
+        else {
+            &variables
+        };
         match prefix {
             Prefix::XCOR => Ok(turtle.x),
             Prefix::YCOR => Ok(turtle.y),
             Prefix::HEADING => Ok(turtle.direction as f32),
             Prefix::COLOR => Ok(get_color(turtle.color)),
             Prefix::QuotationValue => Ok(rest.parse::<f32>().unwrap()),
-            Prefix::OperatorValue => math_calculation(tokens, rest, next_line, turtle, variables),
-            Prefix::Colon => match variables.get(rest) {
+            Prefix::OperatorValue => math_calculation(tokens, rest, next_line, turtle, variables, proc_condi, proc_paras),
+            Prefix::Colon => match to_retrieve.get(rest) {
                 Some(value) => {
                     if value == &TRUE || value == &FALSE {
                         return Err(LogoError::new(format!(
@@ -130,10 +141,21 @@ pub fn get_number_or_bool(
     variables: &HashMap<String, f32>,
     next_line: &usize,
     tokens: &mut std::str::SplitWhitespace,
+    proc_condi: &ProcCondi,
+    proc_paras: &Option<HashMap<String, f32>>,
 ) -> Result<f32, LogoError> {
+    // retrieve variable value from procedure parameters if in procedure
+    // otherwide from variables
+    let temp = &proc_paras.clone().unwrap();
+    let to_retrieve = if proc_condi == &ProcCondi::Running {
+        temp
+    }
+    else {
+        &variables
+        };
     // check if it is a variable containing a bool
     if prefix == &Prefix::Colon {
-        if let Some(value) = variables.get(rest) {
+        if let Some(value) = to_retrieve.get(rest) {
             if value == &TRUE {
                 return Ok(TRUE);
             } else if value == &FALSE {
@@ -155,12 +177,12 @@ pub fn get_number_or_bool(
 
     // check if it is a operator returning bool
     if prefix == &Prefix::OperatorBool {
-        let value = math_calculation(tokens, rest, next_line, turtle, variables)?;
+        let value = math_calculation(tokens, rest, next_line, turtle, variables, proc_condi, proc_paras)?;
         Ok(value)
     }
     // check if it is a number value or variable
     else if is_number(prefix) {
-        return get_number(prefix, rest, turtle, variables, next_line, tokens);
+        return get_number(prefix, rest, turtle, to_retrieve, next_line, tokens, proc_condi, proc_paras);
     } else {
         return Err(LogoError::new(format!(
             "in line: {}, trying to get a number or bool with: {}, but failed",
