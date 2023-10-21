@@ -10,7 +10,7 @@ Stages that are not complete should be left blank (like [ ]).
 > [X] Stage 2 (Variables + Queries)
 > [X] Stage 3 (If + While)
 > [X] Stage 4 (The Stack)
-> [ ] Stage 5 (Procedures)
+> [X] Stage 5 (Procedures)
 
 ## Design Excellence
 
@@ -29,11 +29,10 @@ to your PR.
 As a result, it has huge workload to change all error handling stuff which consumed me a whole afternoon.
 My original design was just returnResult<(), ()>, and eprintln the error before the return Err(()) to main
 function. The design was simple but cargo clippy do not want me to do that, so I created a custom Err type
-containing error message (implemented in helpers/err_handling.rs) to main, and eprintln it. Also it have no 
+containing error message (implemented in helpers/err_handling.rs) and return to main, and eprintln it. Also it have no 
 benefit in this simple program, returning a err containing error message making the design more usable in 
 the future. And by highlighting keyword in error message with color, the debugging work is easiler, especially 
-when the error message is very long. Overall, althoughmodifying error handling was painful, it makes my design 
-more usable.
+when the error message is very long. Overall, it makes my design more usable and readable.
 
 ## Design Limitations
 
@@ -45,15 +44,24 @@ differently now.
 to every function that may cause error. I would have just print it in the main function when a error is
 occured.
 
-> 2. I does not report where in the line the error is. I planed to implement the zero-copy challenge,
-but I found it is hard, and finally chose to implement Make your errors beautiful. At that point, all work
-is down. I would have research on external diagnostic reporting crates to help it complete this.
+> 2. I does not report where in the line the error is. I implement "Make your errors beautiful" when all work
+is down, the workload of rewrite error handling code is time-consuming. I would have research on external 
+diagnostic reporting crates to help it complete this.
 
 > 3. No test and documentation. I finished the project line by line and stage by stage. I did some tests and
 documents after every function is done in the early stage, but when I rewrited my work again and again I gave up
 because it is a heavy workload job and are very likely to be useless when I change my design. And with sample 
 tests and error handling stuff, it is enough for me to debug. But If I implement test and documentation the 
 design should be more readable.
+
+> 4. Too much parameters in some functions. For example, the "get_number" function, which I want it to handle
+every situation that give back a number (e.g. variable, calculation, procedure arguments...), which makes it
+very easy to use, but sometimes require too much input auguments. I am not sure if it is better to split such
+as "get_number" into different functions (e.g. in/out procedure version), it will reduce the parameter required
+in that function, so it is easiler to read and reuse, but requires more condition check and make the code more complex.
+
+> 5.Some unnecessary copies. When the code getting complex, I did some unnecessary copy to avoid handling 
+the lifetime of references. I could have use references instead.
 
 ## Other Comments
 

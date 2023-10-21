@@ -1,8 +1,8 @@
 extern crate helpers;
 
 use clap::Parser;
-use helpers::procedures::*;
 use helpers::conditions::*;
+use helpers::procedures::*;
 use helpers::{parse::parse, turtle::Turtle};
 use std::{
     collections::{HashMap, VecDeque},
@@ -81,7 +81,7 @@ fn main() -> Result<(), ()> {
             &mut proc_condi,
             &mut proc_para,
             &mut procedures,
-            &mut return_index
+            &mut return_index,
         );
         if let Err(e) = result {
             eprintln!("{e}");

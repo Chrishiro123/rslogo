@@ -1,8 +1,8 @@
 use crate::err_handling::LogoError;
 use crate::maths::math_calculation;
+use crate::procedures::*;
 use crate::token_check::{is_bool, is_number};
 use crate::{token_check::Prefix, turtle::Turtle};
-use crate::procedures::*;
 use colored::Colorize;
 use std::collections::HashMap;
 use unsvg::Color;
@@ -35,26 +35,25 @@ pub fn addassign(
     }
 }
 
-pub fn get_from_map(to_get: &str,
+pub fn get_from_map(
+    to_get: &str,
     variables: &HashMap<String, f32>,
-    proc_condi: &ProcCondi, 
-    proc_paras: &Option<HashMap<String, f32>>
+    proc_condi: &ProcCondi,
+    proc_paras: &Option<HashMap<String, f32>>,
 ) -> Option<f32> {
     match variables.get(to_get) {
-        Some(&value) => return Some(value),
+        Some(&value) => Some(value),
         None => {
             if proc_condi == &ProcCondi::Running {
                 if let Some(&value) = proc_paras.as_ref().unwrap().get(to_get) {
                     Some(value)
-                }
-                else {
+                } else {
                     None
                 }
-            }
-            else {
+            } else {
                 None
             }
-        },
+        }
     }
 }
 
@@ -78,7 +77,9 @@ pub fn get_number(
             Prefix::HEADING => Ok(turtle.direction as f32),
             Prefix::COLOR => Ok(get_color(turtle.color)),
             Prefix::QuotationValue => Ok(rest.parse::<f32>().unwrap()),
-            Prefix::OperatorValue => math_calculation(tokens, rest, next_line, turtle, variables, proc_condi, proc_paras),
+            Prefix::OperatorValue => math_calculation(
+                tokens, rest, next_line, turtle, variables, proc_condi, proc_paras,
+            ),
             Prefix::Colon => match get_from_map(rest, variables, proc_condi, proc_paras) {
                 Some(value) => {
                     if value == TRUE || value == FALSE {
@@ -188,12 +189,16 @@ pub fn get_number_or_bool(
 
     // check if it is a operator returning bool
     if prefix == &Prefix::OperatorBool {
-        let value = math_calculation(tokens, rest, next_line, turtle, variables, proc_condi, proc_paras)?;
+        let value = math_calculation(
+            tokens, rest, next_line, turtle, variables, proc_condi, proc_paras,
+        )?;
         Ok(value)
     }
     // check if it is a number value or variable
     else if is_number(prefix) {
-        return get_number(prefix, rest, turtle, variables, next_line, tokens, proc_condi, proc_paras);
+        return get_number(
+            prefix, rest, turtle, variables, next_line, tokens, proc_condi, proc_paras,
+        );
     } else {
         return Err(LogoError::new(format!(
             "in line: {}, trying to get a number or bool with: {}, but failed",

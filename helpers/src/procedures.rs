@@ -1,6 +1,6 @@
 pub struct Procedure {
     pub name: String,
-    pub index:  usize,
+    pub index: usize,
     arguments: Vec<String>,
 }
 
@@ -21,13 +21,11 @@ impl Procedure {
     }
 }
 
-pub fn proc_match<'a>(procedures: &Vec<Procedure>, name: &str) -> Option<(usize, Vec<String>)> {
+pub fn proc_match(procedures: &Vec<Procedure>, name: &str) -> Option<(usize, Vec<String>)> {
     for proc in procedures {
         if proc.name == name {
-            return Some((proc.index, proc.arguments.clone()))
+            return Some((proc.index, proc.arguments.clone()));
         }
     }
-    return None;
+    None
 }
-
-
