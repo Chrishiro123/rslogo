@@ -21,6 +21,7 @@ pub fn parse(
     proc_condi: &mut ProcCondi,
     proc_paras: &mut Option<HashMap<String, f32>>,
     procedures: &mut Vec<Procedure>,
+    return_index: &mut usize,
 ) -> Result<(), LogoError> {
     let first = tokens.next();
     // check if this line is in a procedure
@@ -501,7 +502,7 @@ pub fn parse(
                 },
                 ProcCondi::Running => {
                     *proc_condi = ProcCondi::Out;
-                    *_index += 1;
+                    *_index = *return_index;
                     Ok(())
                 },
                 ProcCondi::Out => {
@@ -534,6 +535,8 @@ pub fn parse(
             
             // running the procedure
             *proc_condi = ProcCondi::Running;
+            // record the index to go back when procedure is finished
+            *return_index = next_line;
             // jump to the body of the procedure
             *_index = start_line + 1;
             Ok(())

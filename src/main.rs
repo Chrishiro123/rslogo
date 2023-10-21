@@ -45,7 +45,10 @@ fn main() -> Result<(), ()> {
     let mut proc_condi = ProcCondi::Out;
     // procedure parameters, initially not in a procedure so it is None
     let mut proc_para: Option<HashMap<String, f32>> = None;
+    // to store procedures
     let mut procedures: Vec<Procedure> = Vec::new();
+    // the index to go back when a procedure is finished
+    let mut return_index: usize = 0;
 
     // read in file
     let mut lines: Vec<&str> = Vec::new();
@@ -78,6 +81,7 @@ fn main() -> Result<(), ()> {
             &mut proc_condi,
             &mut proc_para,
             &mut procedures,
+            &mut return_index
         );
         if let Err(e) = result {
             eprintln!("{e}");

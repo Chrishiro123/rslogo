@@ -48,9 +48,9 @@ pub fn get_number(
     if is_number(prefix) {
         // retrieve variable value from procedure parameters if in procedure
         // otherwide from variables
-        let temp = &proc_paras.clone().unwrap();
+        let proc_paras_clone = proc_paras.clone();
         let to_retrieve = if proc_condi == &ProcCondi::Running {
-            temp
+            proc_paras_clone.as_ref().unwrap()
         }
         else {
             &variables
@@ -146,9 +146,9 @@ pub fn get_number_or_bool(
 ) -> Result<f32, LogoError> {
     // retrieve variable value from procedure parameters if in procedure
     // otherwide from variables
-    let temp = &proc_paras.clone().unwrap();
+    let proc_paras_clone = proc_paras.clone();
     let to_retrieve = if proc_condi == &ProcCondi::Running {
-        temp
+        proc_paras_clone.as_ref().unwrap()
     }
     else {
         &variables
