@@ -155,7 +155,7 @@ pub fn parse(
                     _index.to_string().yellow()
                 )));
             }
-            turtle.setpencolor(value_int)
+            turtle.setpencolor(value_int, &_index)
         }
 
         Some("TURN") => {

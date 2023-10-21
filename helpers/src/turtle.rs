@@ -45,10 +45,11 @@ impl Turtle {
         Ok(())
     }
 
-    pub fn setpencolor(&mut self, color_code: i32) -> Result<(), LogoError> {
+    pub fn setpencolor(&mut self, color_code: i32, next_line: &usize) -> Result<(), LogoError> {
         if !(1..=15).contains(&color_code) {
             return Err(LogoError::new(format!(
-                "{} need integer between {}!",
+                "in line {}, {} need integer between {}!",
+                next_line.to_string().yellow(),
                 "setpencolor".blue(),
                 "[1, 15]".blue()
             )));

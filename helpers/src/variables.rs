@@ -35,6 +35,29 @@ pub fn addassign(
     }
 }
 
+pub fn get_from_map(to_get: &str,
+    variables: &HashMap<String, f32>,
+    proc_condi: &ProcCondi, 
+    proc_paras: &Option<HashMap<String, f32>>
+) -> Option<f32> {
+    match variables.get(to_get) {
+        Some(&value) => return Some(value),
+        None => {
+            if proc_condi == &ProcCondi::Running {
+                if let Some(&value) = proc_paras.as_ref().unwrap().get(to_get) {
+                    Some(value)
+                }
+                else {
+                    None
+                }
+            }
+            else {
+                None
+            }
+        },
+    }
+}
+
 pub fn get_number(
     prefix: &Prefix,
     rest: &str,
@@ -46,15 +69,9 @@ pub fn get_number(
     proc_paras: &Option<HashMap<String, f32>>,
 ) -> Result<f32, LogoError> {
     if is_number(prefix) {
-        // retrieve variable value from procedure parameters if in procedure
+        // retrieve variable value from both variables and procedure parameters if in procedure
         // otherwide from variables
-        let proc_paras_clone = proc_paras.clone();
-        let to_retrieve = if proc_condi == &ProcCondi::Running {
-            proc_paras_clone.as_ref().unwrap()
-        }
-        else {
-            &variables
-        };
+
         match prefix {
             Prefix::XCOR => Ok(turtle.x),
             Prefix::YCOR => Ok(turtle.y),
@@ -62,16 +79,16 @@ pub fn get_number(
             Prefix::COLOR => Ok(get_color(turtle.color)),
             Prefix::QuotationValue => Ok(rest.parse::<f32>().unwrap()),
             Prefix::OperatorValue => math_calculation(tokens, rest, next_line, turtle, variables, proc_condi, proc_paras),
-            Prefix::Colon => match to_retrieve.get(rest) {
+            Prefix::Colon => match get_from_map(rest, variables, proc_condi, proc_paras) {
                 Some(value) => {
-                    if value == &TRUE || value == &FALSE {
+                    if value == TRUE || value == FALSE {
                         return Err(LogoError::new(format!(
                             "in line {}, variable: {}, is a bool but requires a number!",
                             next_line.to_string().yellow(),
                             rest.red()
                         )));
                     }
-                    Ok(*value)
+                    Ok(value)
                 }
                 None => Err(LogoError::new(format!(
                     "in line {}, trying to retrieve a non-existing variable: {}!",
@@ -146,19 +163,13 @@ pub fn get_number_or_bool(
 ) -> Result<f32, LogoError> {
     // retrieve variable value from procedure parameters if in procedure
     // otherwide from variables
-    let proc_paras_clone = proc_paras.clone();
-    let to_retrieve = if proc_condi == &ProcCondi::Running {
-        proc_paras_clone.as_ref().unwrap()
-    }
-    else {
-        &variables
-        };
+
     // check if it is a variable containing a bool
     if prefix == &Prefix::Colon {
-        if let Some(value) = to_retrieve.get(rest) {
-            if value == &TRUE {
+        if let Some(value) = get_from_map(rest, variables, proc_condi, proc_paras) {
+            if value == TRUE {
                 return Ok(TRUE);
-            } else if value == &FALSE {
+            } else if value == FALSE {
                 return Ok(FALSE);
             }
         } else {
@@ -182,7 +193,7 @@ pub fn get_number_or_bool(
     }
     // check if it is a number value or variable
     else if is_number(prefix) {
-        return get_number(prefix, rest, turtle, to_retrieve, next_line, tokens, proc_condi, proc_paras);
+        return get_number(prefix, rest, turtle, variables, next_line, tokens, proc_condi, proc_paras);
     } else {
         return Err(LogoError::new(format!(
             "in line: {}, trying to get a number or bool with: {}, but failed",
